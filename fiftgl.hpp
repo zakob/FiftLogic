@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+//#include <list>
 
 /* Fift Game Logic */
 
@@ -8,16 +9,35 @@ struct position {
 	position(int x, int y);
 	int i;
 	int j;
+
+	// bool operator== (const position &pos);
 };
 
 struct dice {
-	dice(int x, int y, int n);
-	dice(position pos, int n);
+	dice(int x, int y, int value_);
+	dice(position pos_, int value_);
 	position pos;
 	int value;
 };
 
 typedef std::vector<dice> placement;
+
+struct vertex {
+	vertex(placement state_);
+	vertex(placement state_, int value_, std::vector<vertex> &close);
+
+	int calc_G(std::vector<vertex> &close);
+	int calc_H();
+
+	bool operator==(const vertex &v);
+
+	placement state;
+	int value;
+	int parent;
+	int G;
+	int H;
+	int F;
+};
 
 class Gamefield {
 	private:
@@ -29,6 +49,8 @@ class Gamefield {
 		//std::vector<placement> history; // NEED DELETE
 		std::vector<int> curr_history;
 		std::vector<int> init_history;
+		std::vector<int> last_history;
+		std::vector<int> opti_history;
 
 		dice& get_free_dice(placement &ref_placement);
 		void display_history(std::vector<int> &ref_history);
@@ -41,13 +63,15 @@ class Gamefield {
 		placement get_state(int step, placement &ref_placment, std::vector<int> &ref_history);
 		placement get_state_init(int step);
 		placement get_state_curr(int step);
-		//std::vector<placement>& get_history();
+		placement get_state_opti(int step);
 		
 		int get_indexOfdice(placement &ref_placement, int i, int j);
 		int get_indexOfdice(placement &ref_placement, int value);
 
 		std::vector<int>& get_init_history();
 		std::vector<int>& get_curr_history();
+		std::vector<int>& get_last_history();
+		std::vector<int>& get_opti_history();
 		//std::vector<dice> get_lastStep();
 		
 		//void normalize_placement(placement &ref_placement);
@@ -57,11 +81,24 @@ class Gamefield {
 		bool movedice(int i, int j);
 		bool movedice(int value);
 
+		bool iscorrect(placement &ref_placement);
+		bool iscorrect();
+
 		void makeinit(int depth, bool make_norm);
-		//void get_solve();
+		
+		/* find optimal solve */
+		// void makeoptisolve();
+
+		/* heuristic distance */
+		// int calc_dices_notinplace(placement &ref_placement);
+
+		std::vector<vertex> makeNewVertexes(std::vector<vertex> &open, std::vector<vertex> &close);
+
+		std::vector<int> Astar(placement &ref_placement);
 
 		void display(placement &ref_placement);
 		void display_init_history();
 		void display_curr_history();
+		void display_opti_history();
 		//void display_history(); // NEED DELETE
 };

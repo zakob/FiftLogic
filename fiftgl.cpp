@@ -1,26 +1,78 @@
 #include <iostream>
 #include <vector>
+//#include <list>
+// #include <map>
 #include <string>
 #include <cstdlib>
 #include <ctime>
 //#include <random>
 #include "fiftgl.hpp"
 
-position::position() {
-	i = 0;
-	j = 0;
-}
+position::position() : i(0), j(0) {}
 
-position::position(int x, int y) : i(x), j(y)  {}
+// bool position::operator== (const position &pos) {
+// }
 
-dice::dice(int x, int y, int n) {
+position::position(int x, int y) : i(x), j(y) {}
+
+dice::dice(int x, int y, int value_) {
 	pos = position(x, y);
-	value = n;
+	value = value_;
 }
 
-dice::dice(position pos, int n) {
-	pos = pos;
-	value = n;
+dice::dice(position pos_, int value_) : pos(pos_), value(value_) {}
+
+vertex::vertex(placement state_) : state(state_), parent(-1), G(0), H(calc_H()), F(H) {}
+
+vertex::vertex(placement state_, int value_, std::vector<vertex> &close) {
+	state = state_;
+	parent = static_cast<int>(close.size() - 1);
+	value = value_;
+	G = calc_G(close);
+	H = calc_H();
+	F = G + H;
+}
+// vertex::vertex(int value_, int G_, int H_, int F_) : value(value_), G(G_), H(H_), F(F_) {}
+
+int vertex::calc_G(std::vector<vertex> &close) {
+	return close[parent].G + 1;
+}
+
+// int vertex::calc_H() {
+// 	int h(0);
+// 	for (size_t i = 0; i < state.size(); ++i) {
+// 		if (state[i].value != -1) {
+// 			h += abs(static_cast<int>(i) - state[i].value + 1);
+// 		}
+// 		else {
+// 			h += abs(static_cast<int>(i) - static_cast<int>(state.size()) + 1);
+// 		}
+// 	}
+// 	return h;
+// }
+
+int vertex::calc_H() {
+	int h(0);
+	for (size_t i = 0; i < state.size(); ++i) {
+		if (state[i].value != -1) {
+			h += abs(static_cast<int>(i) - state[i].value + 1);
+		}
+		else {
+			h += abs(static_cast<int>(i) - static_cast<int>(state.size()) + 1);
+		}
+	}
+	return h;
+}
+
+bool vertex::operator==(const vertex &v) {
+	bool check = true;
+	for (size_t i = 0; i < v.state.size(); ++i) {
+		if (v.state[i].value != this->state[i].value) {
+			check = false;
+			break;
+		}
+	}
+	return check;
 }
 
 Gamefield::Gamefield(int nx, int ny, int depth) {
@@ -44,6 +96,12 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 	}
 	//history.push_back(init); // NEED DELETE
 	makeinit(depth, true);
+	display(init);
+	std::cout << std::endl;
+	display_init_history();
+	placement p = get_state_init(init_history.size() - 1);
+	display(p);
+	opti_history = Astar(init);
 	curr = init;
 }
 
@@ -61,7 +119,7 @@ placement& Gamefield::get_curr_placement() {
 
 placement Gamefield::get_state(int step, placement &ref_placement, std::vector<int> &ref_history) {
 	placement p = ref_placement;
-	std::vector<int> h;
+	std::vector<int> fake_history;
 	// if (step > 0) {
 	// 	if (step <= static_cast<int>(ref_history.size())) {
 	// 		for (int i = 0; i < step; ++i) {
@@ -71,7 +129,7 @@ placement Gamefield::get_state(int step, placement &ref_placement, std::vector<i
 	// }
 	if (step <= static_cast<int>(ref_history.size())) {
 		for (int i = 0; i <= step; ++i) {
-			movedice(ref_history[i], p, h);
+			movedice(ref_history[i], p, fake_history);
 		}
 	}
 	return p;	
@@ -81,13 +139,13 @@ placement Gamefield::get_state_init(int step) {
 	return get_state(step, corr, init_history);
 }
 
+placement Gamefield::get_state_opti(int step) {
+	return get_state(step, corr, opti_history);
+}
+
 placement Gamefield::get_state_curr(int step) {
 	return get_state(step, init, curr_history);
 }
-
-/*std::vector<placement>& Gamefield::get_history() {
-	return history;
-}*/
 
 dice& Gamefield::get_free_dice(placement &ref_placement) {
 	return ref_placement[get_indexOfdice(ref_placement, -1)];
@@ -118,8 +176,13 @@ std::vector<int>& Gamefield::get_curr_history() {
 	return curr_history;
 }
 
+std::vector<int>& Gamefield::get_opti_history() {
+	return opti_history;
+}
+
 bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int> &ref_history) {
-	if ((i < Nx) && (j < Ny)) {
+	last_history.clear();
+	if ((i < Nx) && (j < Ny) && (i > -1) && (j > -1)) {
 		dice &fd = get_free_dice(ref_placement);
 		if ((fd.pos.i == i) && (fd.pos.j == j)) {
 			return false;
@@ -138,6 +201,7 @@ bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int
 					int c_value = tmp[get_indexOfdice(tmp, i, j + step*k)].value;
 					ref_placement[(j + step*k + step)*Nx + i] = dice(i, j + step*k + step, c_value);
 					ref_history.push_back(c_value);
+					last_history.push_back(c_value);
 				}
 				ref_placement[j*Nx + i] = dice(i, j, -1); // move free dice to new place
 				//history.push_back(ref_placement); // NEED DELETE
@@ -156,6 +220,7 @@ bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int
 					int c_value = tmp[get_indexOfdice(tmp, i + step*k, j)].value;
 					ref_placement[j*Nx + i + step*k + step] = dice(i + step*k + step, j, c_value);
 					ref_history.push_back(c_value);
+					last_history.push_back(c_value);
 				}
 				ref_placement[j*Nx + i] = dice(i, j, -1); // move free dice to new place
 				//history.push_back(ref_placement); // NEED DELETE
@@ -185,6 +250,33 @@ bool Gamefield::movedice(int i, int j) {
 
 bool Gamefield::movedice(int value) {
 	return movedice(value, curr, curr_history);
+}
+
+bool Gamefield::iscorrect(placement &ref_placement) {
+	bool check = true;
+	for (int j = 0; j < Ny; ++j) {
+		for (int i = 0; i < Nx; ++i) {
+			if (ref_placement[j*Nx + i].value != -1) {
+				if (ref_placement[j*Nx + i].value != j*Nx + i + 1) {
+					check = false;
+					// std::cout << j*Nx + i << " " << ref_placement[j*Nx + i].value << std::endl;
+					break;
+				}
+			}
+			else {
+				if (j*Nx + i != ref_placement.size() - 1) {
+					check = false;
+					// std::cout << j*Nx + i << " " << ref_placement[j*Nx + i].value << std::endl;
+					break;
+				}
+			}
+		}
+	}
+	return check;
+}
+
+bool Gamefield::iscorrect() {
+	return iscorrect(curr);
 }
 
 void Gamefield::makeinit(int depth, bool make_norm) {
@@ -246,6 +338,219 @@ void Gamefield::makeinit(int depth, bool make_norm) {
 	}
 }
 
+// void Gamefield::makeoptisolve() {
+// 	std::vector<vertex> open;
+// 	std::vector<vertex> close;
+
+// }
+
+std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::vector<vertex> &close) {
+	size_t i(0);
+	size_t j(0);
+
+	int F(-1);
+	for (i = 0; i < open.size(); ++i) {
+		if (F < 0) {
+			F = open[i].F;
+			j = i;
+		}
+		if (F > open[i].F) {
+			F = open[i].F;
+			j = i;
+		}
+	}
+
+	close.push_back(open[j]);
+	open.erase(open.begin() + j);
+
+	std::cout << "F = " << F << std::endl;
+
+	vertex v = close.back();
+	placement p = v.state;
+	std::vector<int> fake_history;
+
+	bool in_open = false;
+	i = 0;
+
+	std::vector<vertex> last_added;
+
+	// vertex new_open_vertex(p);
+
+	dice fd = get_free_dice(p);
+
+	if (movedice(fd.pos.i + 1, fd.pos.j, p, fake_history)) {
+		// std::cout << "1" << std::endl;
+		// display(p);
+		// display(v.state);
+		vertex new_open_vertex1(p, fake_history[0], close);
+
+		// movedice(fake_history[0], v.state, fake_history);
+		if (!open.empty()) {
+			for (i = 0; i < open.size(); ++i) {
+				if (open[i] == new_open_vertex1) {
+					in_open = true;
+					break;
+				}
+			}
+		}
+		if (in_open) {
+			if (open[i].G > new_open_vertex1.G) {
+				open[i] = new_open_vertex1;
+				// last_added.push_back(new_open_vertex1);
+			}
+		}
+		else {
+			open.push_back(new_open_vertex1);
+			last_added.push_back(new_open_vertex1);
+		}
+		i = 0;
+		in_open = false;
+		p = v.state;
+		fake_history.clear();
+	}
+	if (movedice(fd.pos.i - 1, fd.pos.j, p, fake_history)) {
+		// std::cout << "2" << std::endl;
+		// display(p);
+		// display(v.state);
+		vertex new_open_vertex2(p, fake_history[0], close);
+		if (!open.empty()) {
+			for (i = 0; i < open.size(); ++i) {
+				if (open[i] == new_open_vertex2) {
+					in_open = true;
+					break;
+				}
+			}
+		}
+		if (in_open) {
+			if (open[i].G > new_open_vertex2.G) {
+				open[i] = new_open_vertex2;
+				// last_added.push_back(new_open_vertex2);
+			}
+		}
+		else {
+			open.push_back(new_open_vertex2);
+			last_added.push_back(new_open_vertex2);
+		}
+		i = 0;
+		in_open = false;
+		p = v.state;
+		fake_history.clear();
+	}
+	if (movedice(fd.pos.i, fd.pos.j + 1, p, fake_history)) {
+		// std::cout << "3" << std::endl;
+		// display(p);
+		// display(v.state);
+		vertex new_open_vertex3(p, fake_history[0], close);
+		if (!open.empty()) {
+			for (i = 0; i < open.size(); ++i) {
+				if (open[i] == new_open_vertex3) {
+					in_open = true;
+					break;
+				}
+			}
+		}
+		if (in_open) {
+			if (open[i].G > new_open_vertex3.G) {
+				open[i] = new_open_vertex3;
+				// last_added.push_back(new_open_vertex3);
+			}
+		}
+		else {
+			open.push_back(new_open_vertex3);
+			last_added.push_back(new_open_vertex3);
+		}
+		i = 0;
+		in_open = false;
+		p = v.state;
+		fake_history.clear();
+	}
+	if (movedice(fd.pos.i, fd.pos.j - 1, p, fake_history)) {
+		// std::cout << "4" << std::endl;
+		// display(p);
+		// display(v.state);
+		vertex new_open_vertex4(p, fake_history[0], close);
+		if (!open.empty()) {
+			for (i = 0; i < open.size(); ++i) {
+				if (open[i] == new_open_vertex4) {
+					in_open = true;
+					break;
+				}
+			}
+		}
+		if (in_open) {
+			if (open[i].G > new_open_vertex4.G) {
+				open[i] = new_open_vertex4;
+				// last_added.push_back(new_open_vertex4);
+			}
+		}
+		else {
+			open.push_back(new_open_vertex4);
+			last_added.push_back(new_open_vertex4);
+		}
+		i = 0;
+		in_open = false;
+		p = v.state;
+		fake_history.clear();
+	}
+	// std::cout << std::endl;
+	// if (last_added.empty())
+	// 	display(v.state);
+	// 	std::cout << std::endl;
+	// std::cout << open.size() << " " << close.size() << " " << last_added.size() << std::endl;
+	return last_added;
+}
+
+// int Gamefield::calc_dices_notinplace(placement &ref_placement) {
+	/* calculate number of dices which not inplace */
+	// mb use to func iscorrect() ?
+// 	int n = 0;
+// 	for (int j = 0; j < Ny; ++j) {
+// 		for (int i = 0; i < Nx; ++i) {
+// 			if ((ref_placement[j*Nx + i].value != j*Nx + i) && (ref_placement[j*Nx + i].value != -1))
+// 				n += 1;
+// 		}
+// 	}
+// 	return n;
+// }
+
+
+std::vector<int> Gamefield::Astar(placement &ref_placement) {
+	std::vector<int> history;
+	std::vector<vertex> open;
+	std::vector<vertex> close;
+
+	std::vector<vertex> last_added;
+	// display(ref_placement);
+	vertex start_vertex(ref_placement);
+	
+	if (!iscorrect(ref_placement)) {
+		open.push_back(start_vertex);
+	}
+
+	while (!open.empty()) {
+
+		last_added = makeNewVertexes(open, close);
+
+		for (size_t i = 0; i < last_added.size(); ++i) {
+			// std::cout << "check" << std::endl;
+			if (iscorrect(last_added[i].state)) {
+				history.push_back(last_added[i].value);
+				int parent = last_added[i].parent;
+				// std::cout << parent << std::endl;
+				while (parent > 0) {
+					// std::cout << close[parent].value << std::endl;
+					history.push_back(close[parent].value);
+					parent = close[parent].parent;
+				}
+				open.clear();
+				break;
+			}
+		}
+	}
+	
+	return history;
+}
+
 void Gamefield::display(placement &ref_placement) {
 	for (int j = 0; j < Ny; ++j) {
 		for (int i = 0; i < Nx; ++i) {
@@ -276,6 +581,10 @@ void Gamefield::display_init_history() {
 
 void Gamefield::display_curr_history() {
 	display_history(curr_history);
+}
+
+void Gamefield::display_opti_history() {
+	display_history(opti_history);
 }
 
 /* NEED DELETE */
