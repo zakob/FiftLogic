@@ -11,7 +11,7 @@ void display(placement &ref_placement, int nx, int ny) {
 }
 
 int main(int argc, char *argv[]) {
-	int nx(4), ny(4), depth(15);
+	int nx(4), ny(4), depth(16);
 
 	Gamefield gf(nx, ny, depth);
 

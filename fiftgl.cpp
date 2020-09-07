@@ -52,17 +52,34 @@ int vertex::calc_G(std::vector<vertex> &close) {
 // }
 
 int vertex::calc_H() {
+	/* calculate number of dices which not inplace */
 	int h(0);
-	for (size_t i = 0; i < state.size(); ++i) {
-		if (state[i].value != -1) {
-			h += abs(static_cast<int>(i) - state[i].value + 1);
-		}
-		else {
-			h += abs(static_cast<int>(i) - static_cast<int>(state.size()) + 1);
+	int Nx(4), Ny(4);
+	for (int j = 0; j < Ny; ++j) {
+		for (int i = 0; i < Nx; ++i) {
+			if ((state[j*Nx + i].value - 1 != j*Nx + i) && (state[j*Nx + i].value != -1))
+				h += 1;
+			if (state[j*Nx + i].value == -1)
+				if (j*Nx + i + 1 != Nx*Ny)
+					h += 1;
 		}
 	}
 	return h;
 }
+
+// int vertex::calc_H() {
+// 	int h(0);
+// 	int Nx(4), Ny(4);
+// 	for (int j = 0; j < Ny; ++j) {
+// 		for (int i = 0; i < Nx; ++i) {
+// 			if (state[j*Nx + i].value != -1)
+// 				h += abs(((value - 1) % Nx) - state[j*Nx + i].pos.i) + abs((value / Nx) - state[j*Nx + i].pos.j);
+// 			// else
+// 			// 	h += abs((15 % Nx) - state[j*Nx + i].pos.i) + abs((15 / Nx) - state[j*Nx + i].pos.j);
+// 		}
+// 	}
+// 	return h;
+// }
 
 bool vertex::operator==(const vertex &v) {
 	bool check = true;
@@ -363,7 +380,7 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 	close.push_back(open[j]);
 	open.erase(open.begin() + j);
 
-	std::cout << "F = " << F << std::endl;
+	// std::cout << "F = " << F << std::endl;
 
 	vertex v = close.back();
 	placement p = v.state;
