@@ -15,8 +15,10 @@ struct position {
 
 struct dice {
 	dice(int x, int y, int value_);
-	dice(position pos_, int value_);
+	dice(int x, int y, int x0, int y0, int value_);
+	dice(position pos_, position corr_pos_, int value_);
 	position pos;
+	position corr_pos;
 	int value;
 };
 

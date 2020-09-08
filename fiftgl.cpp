@@ -17,10 +17,17 @@ position::position(int x, int y) : i(x), j(y) {}
 
 dice::dice(int x, int y, int value_) {
 	pos = position(x, y);
+	corr_pos = position(x, y);
 	value = value_;
 }
 
-dice::dice(position pos_, int value_) : pos(pos_), value(value_) {}
+dice::dice(int x, int y, int x0, int y0, int value_) {
+	pos = position(x, y);
+	corr_pos = position(x0, y0);
+	value = value_;
+}
+
+dice::dice(position pos_, position corr_pos_, int value_) : pos(pos_), corr_pos(corr_pos_), value(value_) {}
 
 vertex::vertex(placement state_) : state(state_), parent(-1), G(0), H(calc_H()), F(H) {}
 
@@ -51,35 +58,30 @@ int vertex::calc_G(std::vector<vertex> &close) {
 // 	return h;
 // }
 
-int vertex::calc_H() {
-	/* calculate number of dices which not inplace */
-	int h(0);
-	int Nx(4), Ny(4);
-	for (int j = 0; j < Ny; ++j) {
-		for (int i = 0; i < Nx; ++i) {
-			if ((state[j*Nx + i].value - 1 != j*Nx + i) && (state[j*Nx + i].value != -1))
-				h += 1;
-			if (state[j*Nx + i].value == -1)
-				if (j*Nx + i + 1 != Nx*Ny)
-					h += 1;
-		}
-	}
-	return h;
-}
-
 // int vertex::calc_H() {
+// 	/* calculate number of dices which not inplace */
 // 	int h(0);
 // 	int Nx(4), Ny(4);
 // 	for (int j = 0; j < Ny; ++j) {
 // 		for (int i = 0; i < Nx; ++i) {
-// 			if (state[j*Nx + i].value != -1)
-// 				h += abs(((value - 1) % Nx) - state[j*Nx + i].pos.i) + abs((value / Nx) - state[j*Nx + i].pos.j);
-// 			// else
-// 			// 	h += abs((15 % Nx) - state[j*Nx + i].pos.i) + abs((15 / Nx) - state[j*Nx + i].pos.j);
+// 			if ((state[j*Nx + i].value - 1 != j*Nx + i) && (state[j*Nx + i].value != -1))
+// 				h += 1;
+// 			if (state[j*Nx + i].value == -1)
+// 				if (j*Nx + i + 1 != Nx*Ny)
+// 					h += 1;
 // 		}
 // 	}
 // 	return h;
 // }
+
+int vertex::calc_H() {
+	/* manhattan heuristic */
+	int h(0);
+	for (size_t i = 0; i < state.size(); ++i) {
+		h += abs(state[i].pos.i - state[i].corr_pos.i) + abs(state[i].pos.j - state[i].corr_pos.j);
+	}
+	return h;
+}
 
 bool vertex::operator==(const vertex &v) {
 	bool check = true;
@@ -113,11 +115,11 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 	}
 	//history.push_back(init); // NEED DELETE
 	makeinit(depth, true);
-	display(init);
-	std::cout << std::endl;
-	display_init_history();
-	placement p = get_state_init(init_history.size() - 1);
-	display(p);
+	// display(init);
+	// std::cout << std::endl;
+	// display_init_history();
+	// placement p = get_state_init(init_history.size() - 1);
+	// display(p);
 	opti_history = Astar(init);
 	curr = init;
 }
@@ -215,10 +217,12 @@ bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int
 					step = -step;
 				}
 				for (int k = delta - 1; k != -1; --k) {
-					int c_value = tmp[get_indexOfdice(tmp, i, j + step*k)].value;
-					ref_placement[(j + step*k + step)*Nx + i] = dice(i, j + step*k + step, c_value);
-					ref_history.push_back(c_value);
-					last_history.push_back(c_value);
+					dice md = tmp[get_indexOfdice(tmp, i, j + step*k)];
+					// int c_value = tmp[get_indexOfdice(tmp, i, j + step*k)].value;
+					// position c_pos = tmp[get_indexOfdice(tmp, i, j + step*k)].corr_pos;
+					ref_placement[(j + step*k + step)*Nx + i] = dice(i, j + step*k + step, md.corr_pos.i, md.corr_pos.j, md.value);
+					ref_history.push_back(md.value);
+					last_history.push_back(md.value);
 				}
 				ref_placement[j*Nx + i] = dice(i, j, -1); // move free dice to new place
 				//history.push_back(ref_placement); // NEED DELETE
@@ -234,10 +238,12 @@ bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int
 					step = -step;
 				}
 				for (int k = delta - 1; k != -1; --k) {
-					int c_value = tmp[get_indexOfdice(tmp, i + step*k, j)].value;
-					ref_placement[j*Nx + i + step*k + step] = dice(i + step*k + step, j, c_value);
-					ref_history.push_back(c_value);
-					last_history.push_back(c_value);
+					dice md = tmp[get_indexOfdice(tmp, i + step*k, j)];
+					// int c_value = tmp[get_indexOfdice(tmp, i + step*k, j)].value;
+					// int c_value = tmp[get_indexOfdice(tmp, i + step*k, j)].value;
+					ref_placement[j*Nx + i + step*k + step] = dice(i + step*k + step, j, md.corr_pos.i, md.corr_pos.j, md.value);
+					ref_history.push_back(md.value);
+					last_history.push_back(md.value);
 				}
 				ref_placement[j*Nx + i] = dice(i, j, -1); // move free dice to new place
 				//history.push_back(ref_placement); // NEED DELETE
@@ -551,6 +557,7 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 		for (size_t i = 0; i < last_added.size(); ++i) {
 			// std::cout << "check" << std::endl;
 			if (iscorrect(last_added[i].state)) {
+				std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
 				history.push_back(last_added[i].value);
 				int parent = last_added[i].parent;
 				// std::cout << parent << std::endl;
