@@ -91,9 +91,6 @@ class Gamefield {
 		/* find optimal solve */
 		// void makeoptisolve();
 
-		/* heuristic distance */
-		// int calc_dices_notinplace(placement &ref_placement);
-
 		std::vector<vertex> makeNewVertexes(std::vector<vertex> &open, std::vector<vertex> &close);
 
 		std::vector<int> Astar(placement &ref_placement);

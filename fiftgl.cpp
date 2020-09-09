@@ -370,6 +370,7 @@ void Gamefield::makeinit(int depth, bool make_norm) {
 std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::vector<vertex> &close) {
 	size_t i(0);
 	size_t j(0);
+	size_t k(0);
 
 	int F(-1);
 	for (i = 0; i < open.size(); ++i) {
@@ -393,6 +394,7 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 	std::vector<int> fake_history;
 
 	bool in_open = false;
+	bool in_close = false;
 	i = 0;
 
 	std::vector<vertex> last_added;
@@ -408,26 +410,38 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 		vertex new_open_vertex1(p, fake_history[0], close);
 
 		// movedice(fake_history[0], v.state, fake_history);
+		if (!close.empty()) {
+			for (i = 0; i < close.size(); ++i) {
+				if (close[i] == new_open_vertex1) {
+					in_close = true;
+					break;
+				}
+			}
+		}
 		if (!open.empty()) {
-			for (i = 0; i < open.size(); ++i) {
-				if (open[i] == new_open_vertex1) {
+			for (k = 0; k < open.size(); ++k) {
+				if (open[k] == new_open_vertex1) {
 					in_open = true;
 					break;
 				}
 			}
 		}
-		if (in_open) {
-			if (open[i].G > new_open_vertex1.G) {
-				open[i] = new_open_vertex1;
+		if (in_close) {
+			if (close[i].G > new_open_vertex1.G) {
+				close[i] = new_open_vertex1;
 				// last_added.push_back(new_open_vertex1);
 			}
 		}
 		else {
-			open.push_back(new_open_vertex1);
-			last_added.push_back(new_open_vertex1);
+			if (!in_open) {
+				open.push_back(new_open_vertex1);
+				last_added.push_back(new_open_vertex1);
+			}
 		}
 		i = 0;
+		k = 0;
 		in_open = false;
+		in_close = false;
 		p = v.state;
 		fake_history.clear();
 	}
@@ -436,26 +450,40 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 		// display(p);
 		// display(v.state);
 		vertex new_open_vertex2(p, fake_history[0], close);
+
+		// movedice(fake_history[0], v.state, fake_history);
+		if (!close.empty()) {
+			for (i = 0; i < close.size(); ++i) {
+				if (close[i] == new_open_vertex2) {
+					in_close = true;
+					break;
+				}
+			}
+		}
 		if (!open.empty()) {
-			for (i = 0; i < open.size(); ++i) {
-				if (open[i] == new_open_vertex2) {
+			for (k = 0; k < open.size(); ++k) {
+				if (open[k] == new_open_vertex2) {
 					in_open = true;
 					break;
 				}
 			}
 		}
-		if (in_open) {
-			if (open[i].G > new_open_vertex2.G) {
-				open[i] = new_open_vertex2;
-				// last_added.push_back(new_open_vertex2);
+		if (in_close) {
+			if (close[i].G > new_open_vertex2.G) {
+				close[i] = new_open_vertex2;
+				// last_added.push_back(new_open_vertex1);
 			}
 		}
 		else {
-			open.push_back(new_open_vertex2);
-			last_added.push_back(new_open_vertex2);
+			if (!in_open) {
+				open.push_back(new_open_vertex2);
+				last_added.push_back(new_open_vertex2);
+			}
 		}
 		i = 0;
+		k = 0;
 		in_open = false;
+		in_close = false;
 		p = v.state;
 		fake_history.clear();
 	}
@@ -464,26 +492,40 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 		// display(p);
 		// display(v.state);
 		vertex new_open_vertex3(p, fake_history[0], close);
+
+		// movedice(fake_history[0], v.state, fake_history);
+		if (!close.empty()) {
+			for (i = 0; i < close.size(); ++i) {
+				if (close[i] == new_open_vertex3) {
+					in_close = true;
+					break;
+				}
+			}
+		}
 		if (!open.empty()) {
-			for (i = 0; i < open.size(); ++i) {
-				if (open[i] == new_open_vertex3) {
+			for (k = 0; k < open.size(); ++k) {
+				if (open[k] == new_open_vertex3) {
 					in_open = true;
 					break;
 				}
 			}
 		}
-		if (in_open) {
-			if (open[i].G > new_open_vertex3.G) {
-				open[i] = new_open_vertex3;
-				// last_added.push_back(new_open_vertex3);
+		if (in_close) {
+			if (close[i].G > new_open_vertex3.G) {
+				close[i] = new_open_vertex3;
+				// last_added.push_back(new_open_vertex1);
 			}
 		}
 		else {
-			open.push_back(new_open_vertex3);
-			last_added.push_back(new_open_vertex3);
+			if (!in_open) {
+				open.push_back(new_open_vertex3);
+				last_added.push_back(new_open_vertex3);
+			}
 		}
 		i = 0;
+		k = 0;
 		in_open = false;
+		in_close = false;
 		p = v.state;
 		fake_history.clear();
 	}
@@ -492,26 +534,40 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 		// display(p);
 		// display(v.state);
 		vertex new_open_vertex4(p, fake_history[0], close);
+
+		// movedice(fake_history[0], v.state, fake_history);
+		if (!close.empty()) {
+			for (i = 0; i < close.size(); ++i) {
+				if (close[i] == new_open_vertex4) {
+					in_close = true;
+					break;
+				}
+			}
+		}
 		if (!open.empty()) {
-			for (i = 0; i < open.size(); ++i) {
-				if (open[i] == new_open_vertex4) {
+			for (k = 0; k < open.size(); ++k) {
+				if (open[k] == new_open_vertex4) {
 					in_open = true;
 					break;
 				}
 			}
 		}
-		if (in_open) {
-			if (open[i].G > new_open_vertex4.G) {
-				open[i] = new_open_vertex4;
-				// last_added.push_back(new_open_vertex4);
+		if (in_close) {
+			if (close[i].G > new_open_vertex4.G) {
+				close[i] = new_open_vertex4;
+				// last_added.push_back(new_open_vertex1);
 			}
 		}
 		else {
-			open.push_back(new_open_vertex4);
-			last_added.push_back(new_open_vertex4);
+			if (!in_open) {
+				open.push_back(new_open_vertex4);
+				last_added.push_back(new_open_vertex4);
+			}
 		}
 		i = 0;
+		k = 0;
 		in_open = false;
+		in_close = false;
 		p = v.state;
 		fake_history.clear();
 	}
@@ -522,20 +578,6 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 	// std::cout << open.size() << " " << close.size() << " " << last_added.size() << std::endl;
 	return last_added;
 }
-
-// int Gamefield::calc_dices_notinplace(placement &ref_placement) {
-	/* calculate number of dices which not inplace */
-	// mb use to func iscorrect() ?
-// 	int n = 0;
-// 	for (int j = 0; j < Ny; ++j) {
-// 		for (int i = 0; i < Nx; ++i) {
-// 			if ((ref_placement[j*Nx + i].value != j*Nx + i) && (ref_placement[j*Nx + i].value != -1))
-// 				n += 1;
-// 		}
-// 	}
-// 	return n;
-// }
-
 
 std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	std::vector<int> history;
@@ -568,6 +610,43 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 				}
 				open.clear();
 				break;
+			}
+			if (open.empty()) {
+				std::cout << "open empyt" << std::endl;
+			}
+		}
+		if (!last_added.empty()) {
+			if (open.size() > 1000) {
+				std::cout << open.size() << " " << close.size() << std::endl;
+				// open = last_added;
+				int F_open(-1);
+				int indx_open;
+				// int F_close(-1);
+				// int indx_close;
+				for (size_t k = 0; k < last_added.size(); ++k) {
+					if (F_open < 0) {
+						F_open = last_added[k].F;
+						indx_open = k;
+					}
+					if (F_open > last_added[k].F) {
+						F_open = last_added[k].F;
+						indx_open = k;
+					}
+				}
+				int parent = open[indx_open].parent;
+				while (parent > 0) {
+						// std::cout << close[parent].value << std::endl;
+						history.push_back(close[parent].value);
+						parent = close[parent].parent;
+				}
+				open.clear();
+				close.clear();
+				open.push_back(last_added[indx_open]);
+				open[0].parent = -1;
+				// std::cout << open.size() << " " << close.size() << std::endl;
+				std::cout << "G: " << open[0].G << " H: " << open[0].H << std::endl;
+				display(open[0].state);
+				std::cout << std::endl;
 			}
 		}
 	}
