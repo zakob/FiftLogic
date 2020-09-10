@@ -387,190 +387,86 @@ std::vector<vertex> Gamefield::makeNewVertexes(std::vector<vertex> &open, std::v
 	close.push_back(open[j]);
 	open.erase(open.begin() + j);
 
-	// std::cout << "F = " << F << std::endl;
-
 	vertex v = close.back();
 	placement p = v.state;
 	std::vector<int> fake_history;
 
-	bool in_open = false;
-	bool in_close = false;
 	i = 0;
 
+	std::vector<vertex> test_vertexes;
 	std::vector<vertex> last_added;
-
-	// vertex new_open_vertex(p);
 
 	dice fd = get_free_dice(p);
 
 	if (movedice(fd.pos.i + 1, fd.pos.j, p, fake_history)) {
-		// std::cout << "1" << std::endl;
-		// display(p);
-		// display(v.state);
 		vertex new_open_vertex1(p, fake_history[0], close);
-
-		// movedice(fake_history[0], v.state, fake_history);
-		if (!close.empty()) {
-			for (i = 0; i < close.size(); ++i) {
-				if (close[i] == new_open_vertex1) {
-					in_close = true;
-					break;
-				}
-			}
-		}
-		if (!open.empty()) {
-			for (k = 0; k < open.size(); ++k) {
-				if (open[k] == new_open_vertex1) {
-					in_open = true;
-					break;
-				}
-			}
-		}
-		if (in_close) {
-			if (close[i].G > new_open_vertex1.G) {
-				close[i] = new_open_vertex1;
-				// last_added.push_back(new_open_vertex1);
-			}
-		}
-		else {
-			if (!in_open) {
-				open.push_back(new_open_vertex1);
-				last_added.push_back(new_open_vertex1);
-			}
-		}
-		i = 0;
-		k = 0;
-		in_open = false;
-		in_close = false;
+		test_vertexes.push_back(new_open_vertex1);
 		p = v.state;
-		fake_history.clear();
+		fake_history.clear();	
 	}
 	if (movedice(fd.pos.i - 1, fd.pos.j, p, fake_history)) {
-		// std::cout << "2" << std::endl;
-		// display(p);
-		// display(v.state);
 		vertex new_open_vertex2(p, fake_history[0], close);
-
-		// movedice(fake_history[0], v.state, fake_history);
-		if (!close.empty()) {
-			for (i = 0; i < close.size(); ++i) {
-				if (close[i] == new_open_vertex2) {
-					in_close = true;
-					break;
-				}
-			}
-		}
-		if (!open.empty()) {
-			for (k = 0; k < open.size(); ++k) {
-				if (open[k] == new_open_vertex2) {
-					in_open = true;
-					break;
-				}
-			}
-		}
-		if (in_close) {
-			if (close[i].G > new_open_vertex2.G) {
-				close[i] = new_open_vertex2;
-				// last_added.push_back(new_open_vertex1);
-			}
-		}
-		else {
-			if (!in_open) {
-				open.push_back(new_open_vertex2);
-				last_added.push_back(new_open_vertex2);
-			}
-		}
-		i = 0;
-		k = 0;
-		in_open = false;
-		in_close = false;
+		test_vertexes.push_back(new_open_vertex2);
 		p = v.state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j + 1, p, fake_history)) {
-		// std::cout << "3" << std::endl;
-		// display(p);
-		// display(v.state);
 		vertex new_open_vertex3(p, fake_history[0], close);
-
-		// movedice(fake_history[0], v.state, fake_history);
-		if (!close.empty()) {
-			for (i = 0; i < close.size(); ++i) {
-				if (close[i] == new_open_vertex3) {
-					in_close = true;
-					break;
-				}
-			}
-		}
-		if (!open.empty()) {
-			for (k = 0; k < open.size(); ++k) {
-				if (open[k] == new_open_vertex3) {
-					in_open = true;
-					break;
-				}
-			}
-		}
-		if (in_close) {
-			if (close[i].G > new_open_vertex3.G) {
-				close[i] = new_open_vertex3;
-				// last_added.push_back(new_open_vertex1);
-			}
-		}
-		else {
-			if (!in_open) {
-				open.push_back(new_open_vertex3);
-				last_added.push_back(new_open_vertex3);
-			}
-		}
-		i = 0;
-		k = 0;
-		in_open = false;
-		in_close = false;
+		test_vertexes.push_back(new_open_vertex3);
 		p = v.state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j - 1, p, fake_history)) {
-		// std::cout << "4" << std::endl;
-		// display(p);
-		// display(v.state);
 		vertex new_open_vertex4(p, fake_history[0], close);
-
-		// movedice(fake_history[0], v.state, fake_history);
-		if (!close.empty()) {
-			for (i = 0; i < close.size(); ++i) {
-				if (close[i] == new_open_vertex4) {
-					in_close = true;
-					break;
-				}
-			}
-		}
-		if (!open.empty()) {
-			for (k = 0; k < open.size(); ++k) {
-				if (open[k] == new_open_vertex4) {
-					in_open = true;
-					break;
-				}
-			}
-		}
-		if (in_close) {
-			if (close[i].G > new_open_vertex4.G) {
-				close[i] = new_open_vertex4;
-				// last_added.push_back(new_open_vertex1);
-			}
-		}
-		else {
-			if (!in_open) {
-				open.push_back(new_open_vertex4);
-				last_added.push_back(new_open_vertex4);
-			}
-		}
-		i = 0;
-		k = 0;
-		in_open = false;
-		in_close = false;
+		test_vertexes.push_back(new_open_vertex4);
 		p = v.state;
 		fake_history.clear();
 	}
+
+	std::vector<int> check_close(test_vertexes.size(), -1);
+	std::vector<int> check_open(test_vertexes.size(), -1);
+
+	int count(0);
+	if (!close.empty()) {
+		for (i = 0; i < close.size(); ++i) {
+			for (size_t n = 0; n < test_vertexes.size(); ++n) {
+				if (close[i] == test_vertexes[n]) {
+					check_close[n] = i;
+					count += 1;
+				}
+			}
+			if (count == test_vertexes.size())
+				break;
+		}
+	}
+	count = 0;
+	if (!open.empty()) {
+		for (k = 0; k < open.size(); ++k) {
+			for (size_t n = 0;  n < test_vertexes.size(); ++n) {
+				if (open[k] == test_vertexes[n]) {
+					check_open[n] = k;
+					count += 1;
+				}
+			}
+			if (count == test_vertexes.size())
+				break;
+		}
+	}
+
+	for (size_t n = 0; n < test_vertexes.size(); ++n) {
+		if (check_close[n] > 0) {
+			if (close[check_close[n]].G > test_vertexes[n].G) {
+				close[check_close[n]] = test_vertexes[n];
+			}
+		}
+		else {
+			if (check_open[n] < 0) {
+				open.push_back(test_vertexes[n]);
+				last_added.push_back(test_vertexes[n]);
+			}
+		}
+	}
+
 	// std::cout << std::endl;
 	// if (last_added.empty())
 	// 	display(v.state);
@@ -612,42 +508,38 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 				break;
 			}
 			if (open.empty()) {
-				std::cout << "open empyt" << std::endl;
+				std::cout << "open empty" << std::endl;
 			}
 		}
-		if (!last_added.empty()) {
-			if (open.size() > 1000) {
-				std::cout << open.size() << " " << close.size() << std::endl;
-				// open = last_added;
-				int F_open(-1);
-				int indx_open;
-				// int F_close(-1);
-				// int indx_close;
-				for (size_t k = 0; k < last_added.size(); ++k) {
-					if (F_open < 0) {
-						F_open = last_added[k].F;
-						indx_open = k;
-					}
-					if (F_open > last_added[k].F) {
-						F_open = last_added[k].F;
-						indx_open = k;
-					}
-				}
-				int parent = open[indx_open].parent;
-				while (parent > 0) {
-						// std::cout << close[parent].value << std::endl;
-						history.push_back(close[parent].value);
-						parent = close[parent].parent;
-				}
-				open.clear();
-				close.clear();
-				open.push_back(last_added[indx_open]);
-				open[0].parent = -1;
-				// std::cout << open.size() << " " << close.size() << std::endl;
-				std::cout << "G: " << open[0].G << " H: " << open[0].H << std::endl;
-				display(open[0].state);
-				std::cout << std::endl;
-			}
+
+		if (open.size() > 10000) {
+			std::cout << open.size() << " " << close.size() << std::endl;
+			// int F(-1);
+			// int indx;
+			// for (size_t k = 0; k < open.size(); ++k) {
+			// 	if (F < 0) {
+			// 		F = open[k].F;
+			// 		indx = k;
+			// 	}
+			// 	if (F > open[k].F) {
+			// 		F = open[k].F;
+			// 		indx = k;
+			// 	}
+			// }
+			// int parent = open[indx].parent;
+			// while (parent > 0) {
+			// 		history.push_back(close[parent].value);
+			// 		parent = close[parent].parent;
+			// }
+			// vertex v = open[indx];
+			// open.clear();
+			// open.push_back(v);
+			// open[0].parent = -1;
+			// close.clear();
+			
+			// std::cout << "G: " << open[0].G << " H: " << open[0].H << std::endl;
+			// display(open[0].state);
+			// std::cout << std::endl;
 		}
 	}
 	

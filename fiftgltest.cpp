@@ -11,7 +11,7 @@ void display(placement &ref_placement, int nx, int ny) {
 }
 
 int main(int argc, char *argv[]) {
-	int nx(4), ny(4), depth(100);
+	int nx(4), ny(4), depth(30);
 
 	Gamefield gf(nx, ny, depth);
 
@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
 	// gf.display(gf.get_corr_placement());
 	// std::cout << std::endl;
 
-	// std::cout << "initial: " << std::endl;
-	// gf.display(gf.get_init_placement());
-	// std::cout << std::endl;
+	std::cout << "initial: " << std::endl;
+	gf.display(gf.get_init_placement());
+	std::cout << std::endl;
 
 	// std::cout << "current: " << std::endl;
 	// gf.display(gf.get_curr_placement());
@@ -35,8 +35,11 @@ int main(int argc, char *argv[]) {
 	gf.display_opti_history();
 	std::cout << std::endl;
 
-	// placement p = gf.get_state_init(0);
-	// std::vector<int> h = gf.get_opti_history();
+	std::vector<int> h = gf.get_opti_history();
+	placement p = gf.get_state_opti(h.size() - 1);
+	std::cout << "opti: " << std::endl;
+	display(p, nx, ny);
+	std::cout << std::endl;
 	// for (size_t i = 0; i < h.size(); ++i) {
 	// 	p = gf.get_state_opti(i);
 	// 	std::cout << "Step " << i << ": " << std::endl;
