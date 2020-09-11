@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 //#include <list>
 
 /* Fift Game Logic */
@@ -57,7 +58,9 @@ class Gamefield {
 		dice& get_free_dice(placement &ref_placement);
 		void display_history(std::vector<int> &ref_history);
 	public:
+		Gamefield(int nx, int ny);
 		Gamefield(int nx, int ny, int depth);
+		Gamefield(std::string pth_to_file);
 
 		placement& get_corr_placement();
 		placement& get_init_placement();
@@ -89,10 +92,7 @@ class Gamefield {
 		void makeinit(int depth, bool make_norm);
 		
 		/* find optimal solve */
-		// void makeoptisolve();
-
-		std::vector<vertex> makeNewVertexes(std::vector<vertex> &open, std::vector<vertex> &close);
-
+		std::vector<vertex> makeNewVertices(std::vector<vertex> &open, std::vector<vertex> &close);
 		std::vector<int> Astar(placement &ref_placement);
 
 		void display(placement &ref_placement);
