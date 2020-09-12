@@ -28,11 +28,14 @@ typedef std::vector<dice> placement;
 struct vertex {
 	vertex(placement state_);
 	vertex(placement state_, int value_, std::vector<vertex> &close);
-
+	
+	int linearConflicts();
 	int calc_G(std::vector<vertex> &close);
 	int calc_H();
 
 	bool operator==(const vertex &v);
+	bool operator!=(const vertex &v);
+	bool operator>(const vertex &v);
 
 	placement state;
 	int value;
@@ -96,7 +99,10 @@ class Gamefield {
 		
 		/* find optimal solve */
 		std::vector<vertex> makeNewVertices(std::vector<vertex> &open, std::vector<vertex> &close);
+		// std::vector<vertex> makeNewVertices(std::priority_queue<vertex, std::vector<vertex>, std::greater<vertex>> &open, std::vector<vertex> &close);
+		int makeNewVertices(std::vector<vertex> &path, int &F_bound);
 		std::vector<int> Astar(placement &ref_placement);
+		std::vector<int> IDAstar(placement &ref_placement);
 		
 		std::vector<int> make_optini();
 

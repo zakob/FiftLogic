@@ -29,10 +29,12 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "init_history: " << std::endl;
 	gf.display_init_history();
+	std::cout << gf.get_init_history().size() << std::endl;
 	std::cout << std::endl;
 
 	std::cout << "opti_history: " << std::endl;
 	gf.display_opti_history();
+	std::cout << gf.get_opti_history().size() << std::endl;
 	std::cout << std::endl;
 
 	std::vector<int> h = gf.get_opti_history();
@@ -43,6 +45,7 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "optini_history: " << std::endl;
 	gf.display_optini_history();
+	std::cout << gf.get_optini_history().size() << std::endl;
 	std::cout << std::endl;
 
 	h = gf.get_optini_history();
@@ -50,6 +53,9 @@ int main(int argc, char *argv[]) {
 	std::cout << "optini: " << std::endl;
 	display(p, nx, ny);
 	std::cout << std::endl;
+
+	vertex v(gf.get_init_placement());
+	std::cout << v.linearConflicts() << std::endl;
 
 	// std::vector<int> t {1, 2, 3, 4, 5};
 	// std::vector<int> t {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
