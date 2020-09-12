@@ -54,6 +54,7 @@ class Gamefield {
 		std::vector<int> init_history;
 		std::vector<int> last_history;
 		std::vector<int> opti_history;
+		std::vector<int> optini_history;
 
 		dice& get_free_dice(placement &ref_placement);
 		void display_history(std::vector<int> &ref_history);
@@ -69,6 +70,7 @@ class Gamefield {
 		placement get_state_init(int step);
 		placement get_state_curr(int step);
 		placement get_state_opti(int step);
+		placement get_state_optini(int step);
 		
 		int get_indexOfdice(placement &ref_placement, int i, int j);
 		int get_indexOfdice(placement &ref_placement, int value);
@@ -77,6 +79,7 @@ class Gamefield {
 		std::vector<int>& get_curr_history();
 		std::vector<int>& get_last_history();
 		std::vector<int>& get_opti_history();
+		std::vector<int>& get_optini_history();
 		//std::vector<dice> get_lastStep();
 		
 		//void normalize_placement(placement &ref_placement);
@@ -94,10 +97,13 @@ class Gamefield {
 		/* find optimal solve */
 		std::vector<vertex> makeNewVertices(std::vector<vertex> &open, std::vector<vertex> &close);
 		std::vector<int> Astar(placement &ref_placement);
+		
+		std::vector<int> make_optini();
 
 		void display(placement &ref_placement);
 		void display_init_history();
 		void display_curr_history();
 		void display_opti_history();
+		void display_optini_history();
 		//void display_history(); // NEED DELETE
 };

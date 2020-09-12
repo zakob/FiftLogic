@@ -98,8 +98,11 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 	Nx = nx;
 	Ny = ny;
 	int MAX_VALUE = Nx*Ny;
+
 	// std::vector<int> h01 {12, 11, 7, 6, 10, 9, 5, 10, 9, 7, 6, 3, 4, 8, 3, 6, 15, 12, 11, 3, 8, 4, 2, 1, 10, 9, 1, 10, 9, 1, 6, 8, 3, 11};
-	// init_history = h01;
+	// std::vector<int> h02 {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
+	
+	// init_history = h02;
 	for (int j = 0; j < Ny; ++j) {
 		for (int i = 0; i < Nx; ++i) {
 			int value = j*Nx + i + 1;
@@ -118,12 +121,13 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 	//history.push_back(init); // NEED DELETE
 	makeinit(depth, true);
 	// init = get_state_init(init_history.size() - 1);
-	display(init);
+	// display(init);
 	// std::cout << std::endl;
 	// display_init_history();
 	// placement p = get_state_init(init_history.size() - 1);
 	// display(p);
 	opti_history = Astar(init);
+	optini_history = make_optini();
 	curr = init;
 }
 
@@ -162,6 +166,10 @@ placement Gamefield::get_state_curr(int step) {
 	return get_state(step, init, curr_history);
 }
 
+placement Gamefield::get_state_optini(int step) {
+	return get_state(step, corr, optini_history);
+}
+
 dice& Gamefield::get_free_dice(placement &ref_placement) {
 	return ref_placement[get_indexOfdice(ref_placement, -1)];
 }
@@ -193,6 +201,10 @@ std::vector<int>& Gamefield::get_curr_history() {
 
 std::vector<int>& Gamefield::get_opti_history() {
 	return opti_history;
+}
+
+std::vector<int>& Gamefield::get_optini_history() {
+	return optini_history;
 }
 
 bool Gamefield::movedice(int i, int j, placement &ref_placement, std::vector<int> &ref_history) {
@@ -471,7 +483,7 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 
 		for (size_t i = 0; i < last_added.size(); ++i) {
 			if (iscorrect(last_added[i].state)) {
-				std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
+				// std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
 				history.push_back(last_added[i].value);
 				int parent = last_added[i].parent;
 				while (parent > 0) {
@@ -481,9 +493,9 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 				open.clear();
 				break;
 			}
-			if (open.empty()) {
-				std::cout << "open empty" << std::endl;
-			}
+			// if (open.empty()) {
+			// 	std::cout << "open empty" << std::endl;
+			// }
 		}
 
 		// if (open.size() > 10000) {
@@ -520,6 +532,42 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	return history;
 }
 
+std::vector<int> Gamefield::make_optini() {
+	std::vector<int> opti_h = init_history;
+	std::vector<vertex> states;
+	
+	for (size_t i = 0; i < init_history.size(); ++i) {
+		states.push_back(vertex(get_state_init(i)));
+	}
+
+	bool check(false);
+	while (!check) {
+		for (size_t i = 0; i < states.size(); ++i) {
+			for (size_t j = 0; j < states.size(); ++j) {
+				if ((states[i] == states[j]) && (i != j)) {
+					opti_h.erase(opti_h.begin() + i + 1, opti_h.begin() + j + 1);
+					states.erase(states.begin() + i + 1, states.begin() + j + 1);
+					check = true;
+					// std::cout << "delete from init history " << i << " : " << j << std::endl;
+					break;
+				}
+				else {
+					check = false;
+				}
+			}
+			if (check) {
+				check = false;
+				break;
+			}
+			else {
+				check = true;
+			}
+		}
+	}
+
+	return opti_h;
+}
+
 void Gamefield::display(placement &ref_placement) {
 	for (int j = 0; j < Ny; ++j) {
 		for (int i = 0; i < Nx; ++i) {
@@ -554,6 +602,10 @@ void Gamefield::display_curr_history() {
 
 void Gamefield::display_opti_history() {
 	display_history(opti_history);
+}
+
+void Gamefield::display_optini_history() {
+	display_history(optini_history);
 }
 
 /* NEED DELETE */

@@ -40,6 +40,27 @@ int main(int argc, char *argv[]) {
 	std::cout << "opti: " << std::endl;
 	display(p, nx, ny);
 	std::cout << std::endl;
+
+	std::cout << "optini_history: " << std::endl;
+	gf.display_optini_history();
+	std::cout << std::endl;
+
+	h = gf.get_optini_history();
+	p = gf.get_state_optini(h.size() - 1);
+	std::cout << "optini: " << std::endl;
+	display(p, nx, ny);
+	std::cout << std::endl;
+
+	// std::vector<int> t {1, 2, 3, 4, 5};
+	// std::vector<int> t {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
+	// t.erase(t.begin() + 16, t.begin() + 24);
+	// t.erase(t.begin() + 15);
+	// for (size_t i = 0; i < t.size(); ++i) {
+	// 	std::cout  << i << ": " << t[i] << std::endl;
+	// }
+
+
+
 	// for (size_t i = 0; i < h.size(); ++i) {
 	// 	p = gf.get_state_opti(i);
 	// 	std::cout << "Step " << i << ": " << std::endl;
