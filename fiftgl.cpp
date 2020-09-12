@@ -137,11 +137,11 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 	Ny = ny;
 	int MAX_VALUE = Nx*Ny;
 
-	std::vector<int> h01 {12, 11, 7, 6, 10, 9, 5, 10, 9, 7, 6, 3, 4, 8, 3, 6, 15, 12, 11, 3, 8, 4, 2, 1, 10, 9, 1, 10, 9, 1, 6, 8, 3, 11};
+	// std::vector<int> h01 {12, 11, 7, 6, 10, 9, 5, 10, 9, 7, 6, 3, 4, 8, 3, 6, 15, 12, 11, 3, 8, 4, 2, 1, 10, 9, 1, 10, 9, 1, 6, 8, 3, 11};
 	// std::vector<int> h02 {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
 	// std::vector<int> h03 {12, 11, 10, 9, 5, 6, 9, 10, 7, 8, 4, 3, 8, 9, 10, 14, 15, 7, 11, 4, 4, 12};
 	// std::vector<int> h04 {12, 11, 7,  6,  10, 14, 13, 9,  14, 7,  15, 12, 11, 8,  4,  3,  6,  15, 7,  13, 12, 7,  13, 10, 5,  14, 10, 12, 9,  10, 12, 13, 8, 11};
-	init_history = h01;
+	// init_history = h01;
 	for (int j = 0; j < Ny; ++j) {
 		for (int i = 0; i < Nx; ++i) {
 			int value = j*Nx + i + 1;
@@ -158,8 +158,8 @@ Gamefield::Gamefield(int nx, int ny, int depth) {
 		} 
 	}
 	//history.push_back(init); // NEED DELETE
-	// makeinit(depth, true);
-	init = get_state_init(init_history.size() - 1);
+	makeinit(depth, true);
+	// init = get_state_init(init_history.size() - 1);
 	// display(init);
 	// std::cout << std::endl;
 	// display_init_history();
