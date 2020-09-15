@@ -502,15 +502,30 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 	}
 
 	for (size_t n = 0; n < test_vertices.size(); ++n) {
+		// if (check_close[n] > 0) {
+		// 	if (close[check_close[n]].G > test_vertices[n].G) {
+		// 		close[check_close[n]] = test_vertices[n];
+		// 	}
+		// }
+		// else {
+		// 	if (check_open[n] < 0) {
+		// 		open.push_back(test_vertices[n]);
+		// 		last_added.push_back(test_vertices[n]);
+		// 	}
+		// }
 		if (check_close[n] > 0) {
-			if (close[check_close[n]].G > test_vertices[n].G) {
-				close[check_close[n]] = test_vertices[n];
-			}
+			continue;
 		}
 		else {
 			if (check_open[n] < 0) {
 				open.push_back(test_vertices[n]);
 				last_added.push_back(test_vertices[n]);
+			}
+			else {
+				if (open[check_open[n]].G > test_vertices[n].G) {
+				// if (true) {
+					open[check_open[n]] = test_vertices[n];
+				}	
 			}
 		}
 	}
