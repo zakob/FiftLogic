@@ -26,10 +26,12 @@ struct dice {
 typedef std::vector<dice> placement;
 
 struct vertex {
-	vertex(placement state_);
-	vertex(placement state_, int value_, std::vector<vertex> &close);
+	vertex(placement state_, int Nx_, int Ny_);
+	vertex(placement state_, int value_, int Nx_, int Ny_, std::vector<vertex> &close);
 	
 	int linearConflicts();
+	int manhattan();
+	int inversion();
 	int calc_G(std::vector<vertex> &close);
 	int calc_H();
 
@@ -38,6 +40,9 @@ struct vertex {
 	bool operator>(const vertex &v);
 
 	placement state;
+	int Nx;
+	int Ny;
+
 	int value;
 	int parent;
 	int G;

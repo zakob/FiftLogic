@@ -30,11 +30,13 @@ dice::dice(int x, int y, int x0, int y0, int value_) {
 
 dice::dice(position pos_, position corr_pos_, int value_) : pos(pos_), corr_pos(corr_pos_), value(value_) {}
 
-vertex::vertex(placement state_) : state(state_), parent(-1), G(0), H(calc_H()), F(H) {}
+vertex::vertex(placement state_, int Nx_, int Ny_) : state(state_), parent(-1), Nx(Nx_), Ny(Ny_), G(0), H(calc_H()), F(H) {}
 
-vertex::vertex(placement state_, int value_, std::vector<vertex> &close) {
+vertex::vertex(placement state_, int value_, int Nx_, int Ny_, std::vector<vertex> &close) {
 	state = state_;
 	parent = static_cast<int>(close.size() - 1);
+	Nx = Nx_;
+	Ny = Ny_;
 	value = value_;
 	G = calc_G(close);
 	H = calc_H();
@@ -108,15 +110,41 @@ int vertex::linearConflicts() {
 	return conflicts;
 }
 
-int vertex::calc_H() {
+int vertex::manhattan() {
 	/* manhattan heuristic */
 	int h(0);
 	for (size_t i = 0; i < state.size(); ++i) {
 		if (state[i].value > 0)
 			h += abs(state[i].pos.i - state[i].corr_pos.i) + abs(state[i].pos.j - state[i].corr_pos.j);
 	}
-	h = h + linearConflicts();
+	// h = h + linearConflicts();
 	return h;
+}
+
+int vertex::inversion() {
+	/* https://michael.kim/blog/puzzle */
+	int vcount(0), hcount(0);
+	for (size_t i = 0; i < state.size(); ++i) {
+		for (size_t j = 0; j < state.size(); ++j) {
+			if ((state[i].value > 0) && (state[j].value > 0)) {
+				// if (((i - j) == -1) && (state[i].value > state[j].value))
+				if ((i < j) && (state[i].value > state[j].value))
+					vcount++;
+				// if ((((state[i].pos.i*Ny + state[i].pos.j) - (state[j].pos.i*Ny + state[j].pos.j) == -1)) && ((state[i].corr_pos.i*Ny + state[i].corr_pos.j) > (state[j].corr_pos.i*Ny + state[j].corr_pos.j))) // j*Nx + i + 1 = value
+				if (((state[i].pos.i*Ny + state[i].pos.j) < (state[j].pos.i*Ny + state[j].pos.j)) && ((state[i].corr_pos.i*Ny + state[i].corr_pos.j) > (state[j].corr_pos.i*Ny + state[j].corr_pos.j)))
+					hcount++;
+			}
+		}
+	}
+	// std::cout << "v: " << vcount << " h: " << hcount << std::endl;
+	return (vcount / 3 + vcount % 3) + (hcount / 3 + hcount % 3);
+}
+
+int vertex::calc_H() {
+	// return manhattan();
+	// return inversion();
+	// return manhattan() + linearConflicts();
+	return std::max(inversion(), (manhattan() + linearConflicts()));
 }
 
 bool vertex::operator==(const vertex &v) {
@@ -447,25 +475,25 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 	dice fd = get_free_dice(p);
 
 	if (movedice(fd.pos.i + 1, fd.pos.j, p, fake_history)) {
-		vertex new_open_vertex1(p, fake_history[0], close);
+		vertex new_open_vertex1(p, fake_history[0], Nx, Ny, close);
 		test_vertices.push_back(new_open_vertex1);
 		p = v.state;
 		fake_history.clear();	
 	}
 	if (movedice(fd.pos.i - 1, fd.pos.j, p, fake_history)) {
-		vertex new_open_vertex2(p, fake_history[0], close);
+		vertex new_open_vertex2(p, fake_history[0], Nx, Ny, close);
 		test_vertices.push_back(new_open_vertex2);
 		p = v.state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j + 1, p, fake_history)) {
-		vertex new_open_vertex3(p, fake_history[0], close);
+		vertex new_open_vertex3(p, fake_history[0], Nx, Ny, close);
 		test_vertices.push_back(new_open_vertex3);
 		p = v.state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j - 1, p, fake_history)) {
-		vertex new_open_vertex4(p, fake_history[0], close);
+		vertex new_open_vertex4(p, fake_history[0], Nx, Ny, close);
 		test_vertices.push_back(new_open_vertex4);
 		p = v.state;
 		fake_history.clear();
@@ -652,7 +680,7 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	std::vector<vertex> close;
 
 	std::vector<vertex> last_added;
-	vertex start_vertex(ref_placement);
+	vertex start_vertex(ref_placement, Nx, Ny);
 	
 	if (!iscorrect(ref_placement)) {
 		open.push_back(start_vertex);
@@ -757,7 +785,7 @@ std::vector<int> Gamefield::make_optini() {
 	std::vector<vertex> states;
 	
 	for (size_t i = 0; i < init_history.size(); ++i) {
-		states.push_back(vertex(get_state_init(i)));
+		states.push_back(vertex(get_state_init(i), Nx, Ny));
 	}
 
 	bool check(false);

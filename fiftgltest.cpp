@@ -11,7 +11,7 @@ void display(placement &ref_placement, int nx, int ny) {
 }
 
 int main(int argc, char *argv[]) {
-	int nx(4), ny(4), depth(35);
+	int nx(4), ny(4), depth(40);
 
 	Gamefield gf(nx, ny, depth);
 
@@ -54,8 +54,10 @@ int main(int argc, char *argv[]) {
 	display(p, nx, ny);
 	std::cout << std::endl;
 
-	vertex v(gf.get_init_placement());
-	std::cout << v.linearConflicts() << std::endl;
+	vertex v(gf.get_init_placement(), nx, ny);
+	std::cout << "lC: " << v.linearConflicts() << std::endl;
+	std::cout << "m: " << v.manhattan() << std::endl;
+	std::cout << "i: " << v.inversion() << std::endl;
 
 	// std::vector<int> t {1, 2, 3, 4, 5};
 	// std::vector<int> t {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
