@@ -562,114 +562,6 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 }
 
 // int Gamefield::makeNewVertices(std::vector<vertex> &path, int &F_bound) {
-// 	size_t i(0);
-// 	size_t j(0);
-// 	size_t k(0);
-
-// 	int F(-1);
-// 	for (i = 0; i < path.size(); ++i) {
-// 		if (F < 0) {
-// 			F = path[i].F;
-// 			j = i;
-// 		}
-// 		if (F >= path[i].F) {
-// 		// if (F > open[i].F) {
-// 			F = path[i].F;
-// 			j = i;
-// 		}
-// 	}
-
-// 	vertex v = path[j];
-// 	placement p = v.state;
-// 	std::vector<int> fake_history;
-	
-// 	if (F > F_bound)
-// 		return F;
-
-// 	i = 0;
-
-// 	std::vector<vertex> test_vertices;
-// 	std::vector<vertex> last_added;
-
-// 	dice fd = get_free_dice(p);
-
-// 	if (movedice(fd.pos.i + 1, fd.pos.j, p, fake_history)) {
-// 		vertex new_open_vertex1(p, fake_history[0], close);
-// 		if (F_bound >= new_open_vertex1.F) {
-// 			test_vertices.push_back(new_open_vertex1);
-// 		}
-// 		p = v.state;
-// 		fake_history.clear();
-// 	}
-// 	if (movedice(fd.pos.i - 1, fd.pos.j, p, fake_history)) {
-// 		vertex new_open_vertex2(p, fake_history[0], close);
-// 		if (F_bound >= new_open_vertex2.F) {
-// 			test_vertices.push_back(new_open_vertex2);
-// 		}
-// 		p = v.state;
-// 		fake_history.clear();
-// 	}
-// 	if (movedice(fd.pos.i, fd.pos.j + 1, p, fake_history)) {
-// 		vertex new_open_vertex3(p, fake_history[0], close);
-// 		if (F_bound >= new_open_vertex3.F) {
-// 			test_vertices.push_back(new_open_vertex3);
-// 		}
-// 		p = v.state;
-// 		fake_history.clear();
-// 	}
-// 	if (movedice(fd.pos.i, fd.pos.j - 1, p, fake_history)) {
-// 		vertex new_open_vertex4(p, fake_history[0], close);
-// 		if (F_bound >= new_open_vertex4.F) {
-// 			test_vertices.push_back(new_open_vertex4);
-// 		}
-// 		p = v.state;
-// 		fake_history.clear();
-// 	}
-
-// 	std::vector<int> check_close(test_vertices.size(), -1);
-// 	std::vector<int> check_open(test_vertices.size(), -1);
-
-// 	int count(0);
-// 	if (!close.empty()) {
-// 		for (i = 0; i < close.size(); ++i) {
-// 			for (size_t n = 0; n < test_vertices.size(); ++n) {
-// 				if (close[i] == test_vertices[n]) {
-// 					check_close[n] = i;
-// 					count += 1;
-// 				}
-// 			}
-// 			if (count == test_vertices.size())
-// 				break;
-// 		}
-// 	}
-// 	count = 0;
-// 	if (!open.empty()) {
-// 		for (k = 0; k < open.size(); ++k) {
-// 			for (size_t n = 0;  n < test_vertices.size(); ++n) {
-// 				if (open[k] == test_vertices[n]) {
-// 					check_open[n] = k;
-// 					count += 1;
-// 				}
-// 			}
-// 			if (count == test_vertices.size())
-// 				break;
-// 		}
-// 	}
-
-// 	for (size_t n = 0; n < test_vertices.size(); ++n) {
-// 		if (check_close[n] > 0) {
-// 			if (close[check_close[n]].G > test_vertices[n].G) {
-// 				close[check_close[n]] = test_vertices[n];
-// 			}
-// 		}
-// 		else {
-// 			if (check_open[n] < 0) {
-// 				open.push_back(test_vertices[n]);
-// 				last_added.push_back(test_vertices[n]);
-// 			}
-// 		}
-// 	}
-// 	std::cout << open.size() << " " << close.size() << " " << last_added.size() << std::endl;
 // 	return F_bound;
 // }
 
@@ -700,8 +592,9 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 					history.push_back(close[parent].value);
 					parent = close[parent].parent;
 				}
-				open.clear();
-				break;
+				// open.clear();
+				// break;
+				return history;
 			}
 			// if (open.empty()) {
 			// 	std::cout << "open empty" << std::endl;
@@ -745,37 +638,6 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 // std::vector<int> Gamefield::IDAstar(placement &ref_placement) {
 // 	std::vector<int> history;
 // 	std::vector<vertex> path;
-
-// 	std::vector<vertex> last_added;
-// 	vertex start_vertex(ref_placement);
-	
-// 	if (!iscorrect(ref_placement)) {
-// 		path.push_back(start_vertex);
-// 	}
-
-// 	int F_bound(-1);
-
-// 	while (true) {
-
-// 		F_bound = makeNewVertices(path, F_bound);
-
-// 		for (size_t i = 0; i < last_added.size(); ++i) {
-// 			if (iscorrect(last_added[i].state)) {
-// 				std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
-// 				history.push_back(last_added[i].value);
-// 				int parent = last_added[i].parent;
-// 				while (parent > 0) {
-// 					history.push_back(close[parent].value);
-// 					parent = close[parent].parent;
-// 				}
-// 				open.clear();
-// 				break;
-// 			}
-// 			// if (open.empty()) {
-// 			// 	std::cout << "open empty" << std::endl;
-// 			// }
-// 		}
-// 	}
 	
 // 	return history;
 // }
