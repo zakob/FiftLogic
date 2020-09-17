@@ -30,21 +30,21 @@ dice::dice(int x, int y, int x0, int y0, int value_) {
 
 dice::dice(position pos_, position corr_pos_, int value_) : pos(pos_), corr_pos(corr_pos_), value(value_) {}
 
-vertex::vertex(placement state_, int Nx_, int Ny_) : state(state_), parent(-1), Nx(Nx_), Ny(Ny_), G(0), H(calc_H()), F(H) {}
+vertex::vertex(placement state_, int Nx_, int Ny_) : state(state_), Nx(Nx_), Ny(Ny_), value(0), parent(nullptr), G(0), H(calc_H()), F(H) {}
 
-vertex::vertex(placement state_, int value_, int Nx_, int Ny_, std::vector<vertex> &close) {
+vertex::vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_) {
 	state = state_;
-	parent = static_cast<int>(close.size() - 1);
+	parent = &parent_;
 	Nx = Nx_;
 	Ny = Ny_;
 	value = value_;
-	G = calc_G(close);
+	G = calc_G();
 	H = calc_H();
 	F = G + H;
 }
 
-int vertex::calc_G(std::vector<vertex> &close) {
-	return close[parent].G + 1;
+int vertex::calc_G() {
+	return parent->G + 1;
 }
 
 // int vertex::calc_H() {
@@ -438,21 +438,43 @@ void Gamefield::makeinit(int depth, bool make_norm) {
 	}
 }
 
-std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::vector<vertex> &close) {
+std::vector<vertex> Gamefield::successors(vertex &v) {
+	std::vector<vertex> new_vertices;
+
+	int s[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+	int new_i(0), new_j(0);
+	placement new_state;
+
+	dice fd = get_free_dice(v.state);
+
+	for (int i = 0; i < 4; ++i) {
+		new_i = s[i][0] + fd.pos.i;
+		new_j = s[i][1] + fd.pos.j;
+
+		if ((new_i > -1) && (new_i < Nx) && (new_j > -1) && (new_j < Ny)) {
+			new_state = v.state;
+			new_state[fd.pos.i*Nx + fd.pos.j] = dice(fd.pos.i, fd.pos.j, v.state[new_j*Nx + new_i].corr_pos.i, v.state[new_j*Nx + new_i].corr_pos.j, v.state[new_j*Nx + new_i].value);
+			new_state[new_i*Nx + new_j] = dice(new_i, new_j, fd.corr_pos.i, fd.corr_pos.j, fd.value);
+			new_vertices.push_back(vertex(new_state, v.state[new_j*Nx + new_i].value, Nx, Ny, v));
+		}
+	}
+	return new_vertices;
+}
+
+std::vector<vertex*> Gamefield::makeNewVertices(std::vector<vertex*> &open, std::vector<vertex*> &close) {
 // std::vector<vertex> Gamefield::makeNewVertices(std::priority_queue<vertex, std::vector<vertex>, std::greater<vertex>> &open, std::vector<vertex> &close) {
 	size_t i(0);
 	size_t j(0);
-	size_t k(0);
 
 	int F(-1);
 	for (i = 0; i < open.size(); ++i) {
 		if (F < 0) {
-			F = open[i].F;
+			F = open[i]->F;
 			j = i;
 		}
-		if (F >= open[i].F) {
+		if (F >= open[i]->F) {
 		// if (F > open[i].F) {
-			F = open[i].F;
+			F = open[i]->F;
 			j = i;
 		}
 	}
@@ -463,39 +485,39 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 	// close.push_back(open.top());
 	// open.pop();
 
-	vertex v = close.back();
-	placement p = v.state;
+	vertex *v = close.back();
+	placement p = v->state;
 	std::vector<int> fake_history;
 
-	i = 0;
+	// i = 0;
 
-	std::vector<vertex> test_vertices;
-	std::vector<vertex> last_added;
+	std::vector<vertex*> test_vertices;
+	std::vector<vertex*> last_added;
 
 	dice fd = get_free_dice(p);
 
 	if (movedice(fd.pos.i + 1, fd.pos.j, p, fake_history)) {
-		vertex new_open_vertex1(p, fake_history[0], Nx, Ny, close);
+		vertex *new_open_vertex1 = new vertex(p, fake_history[0], Nx, Ny, *v);
 		test_vertices.push_back(new_open_vertex1);
-		p = v.state;
+		p = v->state;
 		fake_history.clear();	
 	}
 	if (movedice(fd.pos.i - 1, fd.pos.j, p, fake_history)) {
-		vertex new_open_vertex2(p, fake_history[0], Nx, Ny, close);
+		vertex *new_open_vertex2 = new vertex(p, fake_history[0], Nx, Ny, *v);
 		test_vertices.push_back(new_open_vertex2);
-		p = v.state;
+		p = v->state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j + 1, p, fake_history)) {
-		vertex new_open_vertex3(p, fake_history[0], Nx, Ny, close);
+		vertex *new_open_vertex3 = new vertex(p, fake_history[0], Nx, Ny, *v);
 		test_vertices.push_back(new_open_vertex3);
-		p = v.state;
+		p = v->state;
 		fake_history.clear();
 	}
 	if (movedice(fd.pos.i, fd.pos.j - 1, p, fake_history)) {
-		vertex new_open_vertex4(p, fake_history[0], Nx, Ny, close);
+		vertex *new_open_vertex4 = new vertex(p, fake_history[0], Nx, Ny, *v);
 		test_vertices.push_back(new_open_vertex4);
-		p = v.state;
+		p = v->state;
 		fake_history.clear();
 	}
 
@@ -506,7 +528,7 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 	if (!close.empty()) {
 		for (i = 0; i < close.size(); ++i) {
 			for (size_t n = 0; n < test_vertices.size(); ++n) {
-				if (close[i] == test_vertices[n]) {
+				if (*close[i] == *test_vertices[n]) {
 					check_close[n] = i;
 					count += 1;
 				}
@@ -517,10 +539,10 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 	}
 	count = 0;
 	if (!open.empty()) {
-		for (k = 0; k < open.size(); ++k) {
+		for (i = 0; i < open.size(); ++i) {
 			for (size_t n = 0;  n < test_vertices.size(); ++n) {
-				if (open[k] == test_vertices[n]) {
-					check_open[n] = k;
+				if (*open[i] == *test_vertices[n]) {
+					check_open[n] = i;
 					count += 1;
 				}
 			}
@@ -550,7 +572,7 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 				last_added.push_back(test_vertices[n]);
 			}
 			else {
-				if (open[check_open[n]].G > test_vertices[n].G) {
+				if (open[check_open[n]]->G > test_vertices[n]->G) {
 				// if (true) {
 					open[check_open[n]] = test_vertices[n];
 				}	
@@ -567,15 +589,15 @@ std::vector<vertex> Gamefield::makeNewVertices(std::vector<vertex> &open, std::v
 
 std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	std::vector<int> history;
-	std::vector<vertex> open;
+	std::vector<vertex*> open;
 	// std::priority_queue<vertex, std::vector<vertex>, std::greater<vertex>> open;
-	std::vector<vertex> close;
+	std::vector<vertex*> close;
 
-	std::vector<vertex> last_added;
+	std::vector<vertex*> last_added;
 	vertex start_vertex(ref_placement, Nx, Ny);
 	
 	if (!iscorrect(ref_placement)) {
-		open.push_back(start_vertex);
+		open.push_back(&start_vertex);
 	}
 
 	while (!open.empty()) {
@@ -584,13 +606,14 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 
 		for (size_t i = 0; i < last_added.size(); ++i) {
 			// if (iscorrect(last_added[i].state)) {
-			if (last_added[i].H == 0) {
+			if (last_added[i]->H == 0) {
 				std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
-				history.push_back(last_added[i].value);
-				int parent = last_added[i].parent;
-				while (parent > 0) {
-					history.push_back(close[parent].value);
-					parent = close[parent].parent;
+				history.push_back(last_added[i]->value);
+				vertex *p = last_added[i]->parent;
+				while (p != nullptr) {
+					if (p->value > 0)
+						history.push_back(p->value);
+					p = p->parent;
 				}
 				// open.clear();
 				// break;

@@ -27,12 +27,12 @@ typedef std::vector<dice> placement;
 
 struct vertex {
 	vertex(placement state_, int Nx_, int Ny_);
-	vertex(placement state_, int value_, int Nx_, int Ny_, std::vector<vertex> &close);
+	vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_);
 	
 	int linearConflicts();
 	int manhattan();
 	int inversion();
-	int calc_G(std::vector<vertex> &close);
+	int calc_G();
 	int calc_H();
 
 	bool operator==(const vertex &v);
@@ -44,7 +44,8 @@ struct vertex {
 	int Ny;
 
 	int value;
-	int parent;
+	// int parent;
+	vertex *parent;
 	int G;
 	int H;
 	int F;
@@ -103,9 +104,9 @@ class Gamefield {
 		void makeinit(int depth, bool make_norm);
 		
 		/* find optimal solve */
-		std::vector<vertex> makeNewVertices(std::vector<vertex> &open, std::vector<vertex> &close);
+		std::vector<vertex> successors(vertex &v);
+		std::vector<vertex*> makeNewVertices(std::vector<vertex*> &open, std::vector<vertex*> &close);
 		// std::vector<vertex> makeNewVertices(std::priority_queue<vertex, std::vector<vertex>, std::greater<vertex>> &open, std::vector<vertex> &close);
-		int makeNewVertices(std::vector<vertex> &path, int &F_bound);
 		std::vector<int> Astar(placement &ref_placement);
 		std::vector<int> IDAstar(placement &ref_placement);
 		
