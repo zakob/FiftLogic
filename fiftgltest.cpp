@@ -33,7 +33,7 @@ void test_VertexHash(int nx, int ny) {
 	std::cout << "current: " << std::endl;
 	gf.display(gf.get_curr_placement());
 	std::cout << std::endl;
-	std::cout << "hash: " << hash(a) << std::endl;
+	std::cout << "hash: " << hash(b) << std::endl;
 }
 
 void test_search_algorithm(int nx, int ny, int depth) {
