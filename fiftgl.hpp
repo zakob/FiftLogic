@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <string>
-//#include <list>
 
 /* Fift Game Logic */
 
@@ -51,6 +50,10 @@ struct vertex {
 	int F;
 };
 
+struct VertexHash {
+	size_t operator()(const vertex &v) const;
+};
+
 class Gamefield {
 	private:
 		placement corr;
@@ -58,7 +61,6 @@ class Gamefield {
 		placement curr;
 		int Nx;
 		int Ny;
-		//std::vector<placement> history; // NEED DELETE
 		std::vector<int> curr_history;
 		std::vector<int> init_history;
 		std::vector<int> last_history;
@@ -70,7 +72,8 @@ class Gamefield {
 	public:
 		Gamefield(int nx, int ny);
 		Gamefield(int nx, int ny, int depth);
-		Gamefield(std::string pth_to_file);
+		Gamefield(int nx, int ny, std::vector<int> placement_);
+		// Gamefield(std::string pth_to_file);
 
 		placement& get_corr_placement();
 		placement& get_init_placement();
@@ -104,9 +107,8 @@ class Gamefield {
 		void makeinit(int depth, bool make_norm);
 		
 		/* find optimal solve */
-		std::vector<vertex> successors(vertex &v);
-		std::vector<vertex*> makeNewVertices(std::vector<vertex*> &open, std::vector<vertex*> &close);
-		// std::vector<vertex> makeNewVertices(std::priority_queue<vertex, std::vector<vertex>, std::greater<vertex>> &open, std::vector<vertex> &close);
+		std::vector<vertex*> successors(vertex &v);
+
 		std::vector<int> Astar(placement &ref_placement);
 		std::vector<int> IDAstar(placement &ref_placement);
 		
