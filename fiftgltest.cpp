@@ -10,6 +10,32 @@ void display(placement &ref_placement, int nx, int ny) {
 	}
 }
 
+void test_VertexHash(int nx, int ny) {
+	Gamefield gf(nx, ny);
+
+	// std::cout << "initial: " << std::endl;
+	// gf.display(gf.get_init_placement());
+	// std::cout << std::endl;
+
+	VertexHash hash;
+
+	vertex a(gf.get_curr_placement(), nx, ny);
+
+	std::cout << "current: " << std::endl;
+	gf.display(gf.get_curr_placement());
+	std::cout << std::endl;
+	std::cout << "hash: " << hash(a) << std::endl;
+
+	gf.movedice(nx*ny - 1);
+
+	vertex b(gf.get_curr_placement(), nx, ny);
+
+	std::cout << "current: " << std::endl;
+	gf.display(gf.get_curr_placement());
+	std::cout << std::endl;
+	std::cout << "hash: " << hash(a) << std::endl;
+}
+
 void test_search_algorithm(int nx, int ny, int depth) {
 	Gamefield gf(nx, ny, depth);
 
@@ -61,7 +87,8 @@ void test_search_algorithm(int nx, int ny, int depth) {
 int main(int argc, char *argv[]) {
 	int nx(4), ny(4), depth(30);
 
-	test_search_algorithm(nx, ny, depth);		
+	// test_search_algorithm(nx, ny, depth);
+	test_VertexHash(nx, ny);		
 
 	return 0;
 }

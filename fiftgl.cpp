@@ -167,7 +167,10 @@ size_t VertexHash::operator()(const vertex &v) const {
 	/* factorial kernel of a matrix by K.I. Zaytsev */
 	size_t h(0);
 	for(size_t j = 0; j < v.state.size(); ++j) {
-		h = h*(v.state.size() - j) + v.state[j].value;
+		if (v.state[j].value != -1)
+			h = h*(v.state.size() - j) + v.state[j].value;
+		else
+			h = h*(v.state.size() - j);
 	}
 	return h;
 }
