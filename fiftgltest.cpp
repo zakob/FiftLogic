@@ -34,6 +34,17 @@ void test_VertexHash(int nx, int ny) {
 	gf.display(gf.get_curr_placement());
 	std::cout << std::endl;
 	std::cout << "hash: " << hash(b) << std::endl;
+
+	gf.movedice(nx - 1);
+
+	vertex c(gf.get_curr_placement(), nx, ny);
+
+	std::cout << "current: " << std::endl;
+	gf.display(gf.get_curr_placement());
+	std::cout << std::endl;
+	std::cout << "hash: " << hash(c) << std::endl;
+
+
 }
 
 void test_search_algorithm(int nx, int ny, int depth) {
@@ -87,8 +98,8 @@ void test_search_algorithm(int nx, int ny, int depth) {
 int main(int argc, char *argv[]) {
 	int nx(4), ny(4), depth(30);
 
-	// test_search_algorithm(nx, ny, depth);
-	test_VertexHash(nx, ny);		
+	test_search_algorithm(nx, ny, depth);
+	// test_VertexHash(nx, ny);		
 
 	return 0;
 }

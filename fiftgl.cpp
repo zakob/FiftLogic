@@ -3,7 +3,9 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
-//#include <random>
+#include <memory>
+// #include <utility>
+// #include <random>
 #include "fiftgl.hpp"
 
 position::position() : i(0), j(0) {}
@@ -27,11 +29,13 @@ dice::dice(int x, int y, int x0, int y0, int value_) {
 
 dice::dice(position pos_, position corr_pos_, int value_) : pos(pos_), corr_pos(corr_pos_), value(value_) {}
 
-vertex::vertex(placement state_, int Nx_, int Ny_) : state(state_), Nx(Nx_), Ny(Ny_), value(0), parent(nullptr), G(0), H(calc_H()), F(H) {}
+// vertex::vertex(placement state_, int Nx_, int Ny_) : state(state_), Nx(Nx_), Ny(Ny_), value(0), parent(nullptr), G(0), H(calc_H()), F(H) {}
+vertex::vertex(placement &state_, int &Nx_, int &Ny_) : state(state_), Nx(Nx_), Ny(Ny_), value(0), G(0), H(calc_H()), F(H) {}
 
-vertex::vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_) {
+// vertex::vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_) {
+vertex::vertex(placement &state_, int &value_, int &Nx_, int &Ny_, std::shared_ptr<vertex> &parent_) {
 	state = state_;
-	parent = &parent_;
+	parent = parent_;
 	Nx = Nx_;
 	Ny = Ny_;
 	value = value_;
@@ -41,7 +45,7 @@ vertex::vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_) 
 }
 
 int vertex::calc_G() {
-	return parent->G + 1;
+	return getParent()->G + 1;
 }
 
 // int vertex::calc_H() {
@@ -163,16 +167,34 @@ bool vertex::operator>(const vertex &v) {
 	return this->F > v.F;
 }
 
+const std::shared_ptr<vertex> vertex::getParent() const {
+	return parent.lock();
+}
+
 size_t VertexHash::operator()(const vertex &v) const {
 	/* factorial kernel of a matrix by K.I. Zaytsev */
 	size_t h(0);
-	for(size_t j = 0; j < v.state.size(); ++j) {
-		h = h*(v.state.size() - j) + v.state[j].value;
-		// if (v.state[j].value != -1)
-		// 	h = h*(v.state.size() - j) + v.state[j].value;
-		// else
-		// 	h = h*(v.state.size() - j);
+	int index(0);
+	std::vector<int> fak;
+
+	for(size_t i = 0; i < v.state.size(); ++i) {
+		if (v.state[i].value != -1)
+			fak.push_back(v.state[i].value);
+		else
+			fak.push_back(0);
 	}
+
+	for(size_t value = 0; value < v.state.size(); ++value) {
+
+		for(index = 0; index < fak.size(); ++index) {
+			if (fak[index] == value)
+				break;
+		}
+
+		h = h*(v.state.size() - value) + index;
+		fak.erase(fak.begin() + index);
+	}
+
 	return h;
 }
 
@@ -445,26 +467,27 @@ void Gamefield::makeinit(int depth, bool make_norm) {
 	}
 }
 
-std::vector<vertex*> Gamefield::successors(vertex &v) {
-	std::vector<vertex*> new_vertices;
+std::vector<std::shared_ptr<vertex>> Gamefield::successors(std::shared_ptr<vertex> &v) {
+	std::vector<std::shared_ptr<vertex>> new_vertices;
 
 	int s[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 	int new_i(0), new_j(0);
 	placement new_state;
 
-	dice fd = get_free_dice(v.state);
+	dice fd = get_free_dice(v->state);
 
 	for (int i = 0; i < 4; ++i) {
 		new_i = s[i][0] + fd.pos.i;
 		new_j = s[i][1] + fd.pos.j;
 
 		if ((new_i > -1) && (new_i < Nx) && (new_j > -1) && (new_j < Ny)) {
-			new_state = v.state;
-			new_state[fd.pos.j*Nx + fd.pos.i] = dice(fd.pos.i, fd.pos.j, v.state[new_j*Nx + new_i].corr_pos.i, v.state[new_j*Nx + new_i].corr_pos.j, v.state[new_j*Nx + new_i].value);
+			new_state = v->state;
+			new_state[fd.pos.j*Nx + fd.pos.i] = dice(fd.pos.i, fd.pos.j, v->state[new_j*Nx + new_i].corr_pos.i, v->state[new_j*Nx + new_i].corr_pos.j, v->state[new_j*Nx + new_i].value);
 			new_state[new_j*Nx + new_i] = dice(new_i, new_j, fd.corr_pos.i, fd.corr_pos.j, fd.value);
 			// display(new_state);
 			// std::cout << i << std::endl;
-			new_vertices.push_back(new vertex(new_state, v.state[new_j*Nx + new_i].value, Nx, Ny, v));
+			// new_vertices.push_back(new vertex(new_state, v.state[new_j*Nx + new_i].value, Nx, Ny, v));
+			new_vertices.push_back(std::make_shared<vertex>(new_state, v->state[new_j*Nx + new_i].value, Nx, Ny, v));
 		}
 	}
 	return new_vertices;
@@ -473,16 +496,21 @@ std::vector<vertex*> Gamefield::successors(vertex &v) {
 std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	std::vector<int> history;
 	
-	std::vector<vertex*> open;
-	std::vector<vertex*> close;
+	// std::vector<vertex*> open;
+	// std::vector<vertex*> close;
+	std::vector<std::shared_ptr<vertex>> open;
+	std::vector<std::shared_ptr<vertex>> close;
 
-	std::vector<vertex*> test_vertices;
+	std::vector<std::shared_ptr<vertex>> test_vertices;
 	// vertex start_vertex(ref_placement, Nx, Ny);
 	
-	if (!iscorrect(ref_placement))
-		open.push_back(new vertex(ref_placement, Nx, Ny));
-	else
+	if (!iscorrect(ref_placement)) {
+		open.push_back(std::make_shared<vertex>(ref_placement, Nx, Ny));
+		// open.push_back(new vertex(ref_placement, Nx, Ny));
+	}
+	else {
 		return history;
+	}
 
 	while (!open.empty()) {
 		size_t i(0);
@@ -504,7 +532,7 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 		close.push_back(open[j]);
 		open.erase(open.begin() + j);
 
-		test_vertices = successors(*close.back());
+		test_vertices = successors(close.back());
 
 		std::vector<int> check_close(test_vertices.size(), -1);
 		std::vector<int> check_open(test_vertices.size(), -1);
@@ -538,7 +566,7 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 
 		for (size_t n = 0; n < test_vertices.size(); ++n) {
 			if (check_close[n] > 0) {
-				delete test_vertices[n];
+				// delete test_vertices[n];
 				continue;
 			}
 			else {
@@ -547,13 +575,13 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 				}
 				else {
 					if (open[check_open[n]]->G > test_vertices[n]->G) {
-						// open[check_open[n]] = test_vertices[n];
-						open[check_open[n]]->G = test_vertices[n]->G;
-						open[check_open[n]]->H = test_vertices[n]->H;
-						open[check_open[n]]->F = test_vertices[n]->F;
-						open[check_open[n]]->value = test_vertices[n]->value;
-						open[check_open[n]]->parent = test_vertices[n]->parent;
-						delete test_vertices[n];
+						open[check_open[n]] = test_vertices[n];
+						// open[check_open[n]]->G = test_vertices[n]->G;
+						// open[check_open[n]]->H = test_vertices[n]->H;
+						// open[check_open[n]]->F = test_vertices[n]->F;
+						// open[check_open[n]]->value = test_vertices[n]->value;
+						// open[check_open[n]]->parent = test_vertices[n]->parent;
+						// delete test_vertices[n];
 					}	
 				}
 			}
@@ -563,10 +591,13 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 			if (test_vertices[i]->H == 0) {
 				std::cout << "open: " << open.size() << " close: " << close.size() << std::endl;
 				history.push_back(test_vertices[i]->value);
-				vertex *p = test_vertices[i]->parent;
-				while (p->parent != nullptr) {
+				// vertex *p = test_vertices[i]->parent;
+				// std::shared_ptr<vertex> p = test_vertices[i].getParent();
+				std::shared_ptr<vertex> p = test_vertices[i]->getParent();
+				while (p->getParent() != nullptr) {
 					history.push_back(p->value);
-					p = p->parent;
+					// p = p->parent;
+					p = p->getParent();
 				}
 				return history;
 			}
@@ -592,7 +623,9 @@ std::vector<int> Gamefield::make_optini() {
 	std::vector<vertex> states;
 	
 	for (size_t i = 0; i < init_history.size(); ++i) {
-		states.push_back(vertex(get_state_init(i), Nx, Ny));
+		placement p = get_state_init(i);
+		// states.push_back(vertex(get_state_init(i), Nx, Ny));
+		states.push_back(vertex(p, Nx, Ny));
 	}
 
 	bool check(false);

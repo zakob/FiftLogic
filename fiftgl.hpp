@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
 
 /* Fift Game Logic */
 
@@ -25,9 +26,9 @@ struct dice {
 typedef std::vector<dice> placement;
 
 struct vertex {
-	vertex(placement state_, int Nx_, int Ny_);
-	vertex(placement state_, int value_, int Nx_, int Ny_, vertex &parent_);
-	
+	vertex(placement &state_, int &Nx_, int &Ny_);
+	vertex(placement &state_, int &value_, int &Nx_, int &Ny_, std::shared_ptr<vertex> &parent_);
+
 	int linearConflicts();
 	int manhattan();
 	int inversion();
@@ -37,6 +38,8 @@ struct vertex {
 	bool operator==(const vertex &v);
 	bool operator!=(const vertex &v);
 	bool operator>(const vertex &v);
+	
+	const std::shared_ptr<vertex> getParent() const;
 
 	placement state;
 	int Nx;
@@ -44,7 +47,8 @@ struct vertex {
 
 	int value;
 	// int parent;
-	vertex *parent;
+	// vertex *parent;
+	std::weak_ptr<vertex> parent;
 	int G;
 	int H;
 	int F;
@@ -107,7 +111,7 @@ class Gamefield {
 		void makeinit(int depth, bool make_norm);
 		
 		/* find optimal solve */
-		std::vector<vertex*> successors(vertex &v);
+		std::vector<std::shared_ptr<vertex>> successors(std::shared_ptr<vertex> &v);
 
 		std::vector<int> Astar(placement &ref_placement);
 		std::vector<int> IDAstar(placement &ref_placement);
