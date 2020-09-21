@@ -37,7 +37,6 @@ struct vertex {
 
 	bool operator==(const vertex &v);
 	bool operator!=(const vertex &v);
-	bool operator>(const vertex &v);
 	
 	const std::shared_ptr<vertex> getParent() const;
 
@@ -54,8 +53,13 @@ struct vertex {
 	int F;
 };
 
+struct VertexSorter {
+	bool operator()(std::shared_ptr<vertex> &lhs, std::shared_ptr<vertex> &rhs);
+};
+
 struct VertexHash {
 	size_t operator()(const vertex &v) const;
+	size_t operator()(const std::shared_ptr<vertex> &pv) const;
 };
 
 class Gamefield {

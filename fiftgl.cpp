@@ -163,10 +163,6 @@ bool vertex::operator!=(const vertex &v) {
 	return !(operator==(v));
 }
 
-bool vertex::operator>(const vertex &v) {
-	return this->F > v.F;
-}
-
 const std::shared_ptr<vertex> vertex::getParent() const {
 	return parent.lock();
 }
@@ -192,6 +188,37 @@ size_t VertexHash::operator()(const vertex &v) const {
 		}
 
 		h = h*(v.state.size() - value) + index;
+		fak.erase(fak.begin() + index);
+	}
+
+	return h;
+}
+
+bool VertexSorter::operator() (std::shared_ptr<vertex> &lhs, std::shared_ptr<vertex> &rhs) {
+		return lhs->F > rhs->F;
+}
+
+size_t VertexHash::operator()(const std::shared_ptr<vertex> &pv) const {
+	/* factorial kernel of a matrix by K.I. Zaytsev */
+	size_t h(0);
+	int index(0);
+	std::vector<int> fak;
+
+	for(size_t i = 0; i < pv->state.size(); ++i) {
+		if (pv->state[i].value != -1)
+			fak.push_back(pv->state[i].value);
+		else
+			fak.push_back(0);
+	}
+
+	for(size_t value = 0; value < pv->state.size(); ++value) {
+
+		for(index = 0; index < fak.size(); ++index) {
+			if (fak[index] == value)
+				break;
+		}
+
+		h = h*(pv->state.size() - value) + index;
 		fak.erase(fak.begin() + index);
 	}
 

@@ -1,5 +1,8 @@
 #include "fiftgl.hpp"
 #include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <memory>
 
 void display(placement &ref_placement, int nx, int ny) {
 	for (int j = 0; j < ny; ++j) {
@@ -95,11 +98,90 @@ void test_search_algorithm(int nx, int ny, int depth) {
 	std::cout << "i: " << v.inversion() << std::endl;
 }
 
+void test_pq(int nx, int ny) {
+	Gamefield gf(nx, ny);
+	
+	placement p1 = gf.get_init_placement();
+	
+	gf.movedice(nx*ny - 1);
+	placement p2 = gf.get_curr_placement();
+
+	gf.movedice(nx - 1);
+	placement p3 = gf.get_curr_placement();
+
+	std::shared_ptr<vertex> v1 = std::make_shared<vertex>(p1, nx, ny);
+	std::shared_ptr<vertex> v2 = std::make_shared<vertex>(p2, nx, ny);
+	std::shared_ptr<vertex> v3 = std::make_shared<vertex>(p3, nx, ny);
+
+	std::cout << "v1_F: " << v1->F << std::endl;
+	std::cout << "v2_F: " << v2->F << std::endl;
+	std::cout << "v3_F: " << v3->F << std::endl;
+
+	std::priority_queue<std::shared_ptr<vertex>,
+						std::deque<std::shared_ptr<vertex>>,
+						VertexSorter> q;
+		
+	q.push(v3);
+	q.push(v2);
+	q.push(v1);
+	q.push(v1);
+
+	while (!q.empty()) {
+		std::cout << q.top()->F << std::endl;
+		q.pop();
+	}
+
+}
+
+void test_umap(int nx, int ny) {
+	Gamefield gf(nx, ny);
+	
+	placement p1 = gf.get_init_placement();
+	
+	gf.movedice(nx*ny - 1);
+	placement p2 = gf.get_curr_placement();
+
+	gf.movedice(nx - 1);
+	placement p3 = gf.get_curr_placement();
+	placement p4 = gf.get_curr_placement();
+
+	std::shared_ptr<vertex> v1 = std::make_shared<vertex>(p1, nx, ny);
+	std::shared_ptr<vertex> v2 = std::make_shared<vertex>(p2, nx, ny);
+	std::shared_ptr<vertex> v3 = std::make_shared<vertex>(p3, nx, ny);
+	std::shared_ptr<vertex> v4 = std::make_shared<vertex>(p4, nx, ny);
+
+	std::cout << "v1_F: " << v1->F << std::endl;
+	std::cout << "v2_F: " << v2->F << std::endl;
+	std::cout << "v3_F: " << v3->F << std::endl;
+
+	std::unordered_map<std::shared_ptr<vertex>,
+					   size_t,
+					   VertexHash> umap;
+	
+	VertexHash h;
+
+	umap.emplace(v1, h(v1));
+	umap.emplace(v2, h(v2));
+	umap.emplace(v3, h(v3));
+
+	for (auto v: umap) {
+		std::cout << v.first->F << " " << v.second << std::endl;
+	}
+
+	if (umap.find(v4) != umap.end())
+		std::cout << "found" << std::endl;
+	else
+		std::cout << "not found" << std::endl;
+	
+}
+
 int main(int argc, char *argv[]) {
 	int nx(4), ny(4), depth(30);
 
-	test_search_algorithm(nx, ny, depth);
+	// test_search_algorithm(nx, ny, depth);
 	// test_VertexHash(nx, ny);		
+	// test_pq(nx, ny);
+	test_umap(nx, ny);
 
 	return 0;
 }
