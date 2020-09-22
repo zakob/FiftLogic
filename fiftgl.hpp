@@ -62,6 +62,10 @@ struct VertexHash {
 	size_t operator()(const std::shared_ptr<vertex> &pv) const;
 };
 
+struct VertexHashEqual {
+	bool operator()(const std::shared_ptr<vertex> &lhs, const std::shared_ptr<vertex> &rhs) const;
+};
+
 class Gamefield {
 	private:
 		placement corr;
@@ -78,9 +82,9 @@ class Gamefield {
 		dice& get_free_dice(placement &ref_placement);
 		void display_history(std::vector<int> &ref_history);
 	public:
-		Gamefield(int nx, int ny);
-		Gamefield(int nx, int ny, int depth);
-		Gamefield(int nx, int ny, std::vector<int> placement_);
+		Gamefield(int &nx, int &ny);
+		Gamefield(int &nx, int &ny, int &depth);
+		Gamefield(int &nx, int &ny, std::vector<int> &placement_);
 		// Gamefield(std::string pth_to_file);
 
 		placement& get_corr_placement();
@@ -117,6 +121,7 @@ class Gamefield {
 		/* find optimal solve */
 		std::vector<std::shared_ptr<vertex>> successors(std::shared_ptr<vertex> &v);
 
+		std::vector<int> Astar_slow(placement &ref_placement);
 		std::vector<int> Astar(placement &ref_placement);
 		std::vector<int> IDAstar(placement &ref_placement);
 		

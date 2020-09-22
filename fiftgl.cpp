@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <memory>
+#include <unordered_map>
+#include <queue>
 // #include <utility>
 // #include <random>
 #include "fiftgl.hpp"
@@ -194,10 +196,6 @@ size_t VertexHash::operator()(const vertex &v) const {
 	return h;
 }
 
-bool VertexSorter::operator() (std::shared_ptr<vertex> &lhs, std::shared_ptr<vertex> &rhs) {
-		return lhs->F > rhs->F;
-}
-
 size_t VertexHash::operator()(const std::shared_ptr<vertex> &pv) const {
 	/* factorial kernel of a matrix by K.I. Zaytsev */
 	size_t h(0);
@@ -225,7 +223,15 @@ size_t VertexHash::operator()(const std::shared_ptr<vertex> &pv) const {
 	return h;
 }
 
-Gamefield::Gamefield(int nx, int ny) {
+bool VertexHashEqual::operator() (const std::shared_ptr<vertex> &lhs, const std::shared_ptr<vertex> &rhs) const {
+	return *lhs == *rhs;
+}
+
+bool VertexSorter::operator() (std::shared_ptr<vertex> &lhs, std::shared_ptr<vertex> &rhs) {
+		return lhs->F > rhs->F;
+}
+
+Gamefield::Gamefield(int &nx, int &ny) {
 	Nx = nx;
 	Ny = ny;
 	int MAX_VALUE = Nx*Ny;
@@ -248,7 +254,7 @@ Gamefield::Gamefield(int nx, int ny) {
 	curr = init;
 }
 
-Gamefield::Gamefield(int nx, int ny, int depth): Gamefield(nx, ny) {
+Gamefield::Gamefield(int &nx, int &ny, int &depth) : Gamefield(nx, ny) {
 	// std::vector<int> h {12, 11, 7, 6, 10, 9, 5, 10, 9, 7, 6, 3, 4, 8, 3, 6, 15, 12, 11, 3, 8, 4, 2, 1, 10, 9, 1, 10, 9, 1, 6, 8, 3, 11};
 	// std::vector<int> h {12, 8, 4, 3, 2, 1, 5, 9, 10, 11, 8, 4, 7, 8, 15, 12, 4, 7, 3, 2, 2, 3, 7, 4};
 	// std::vector<int> h {12, 11, 10, 9, 5, 6, 9, 10, 7, 8, 4, 3, 8, 9, 10, 14, 15, 7, 11, 4, 4, 12};
@@ -256,14 +262,31 @@ Gamefield::Gamefield(int nx, int ny, int depth): Gamefield(nx, ny) {
 	// std::vector<int> h {15, 14, 13, 9, 10, 13, 14, 11, 12, 8, 4, 3, 2, 1, 5, 6, 7, 4, 3, 2, 4, 3, 8, 15, 11, 14, 9, 10, 13, 12, 15, 11};
 	// std::vector<int> h {12, 8, 7, 11, 15, 12, 8, 7, 11, 3, 2, 1, 5, 6, 3, 15, 10, 3, 1, 2, 15, 1, 3, 10, 12, 8, 7, 11, 1, 3, 3, 1, 11, 7}; // not find optimal path !!!
 	// std::vector<int> h {15, 14, 10, 9, 5, 1, 2, 6, 1, 2, 6, 3, 7, 1, 3, 7, 4, 8, 1, 3, 2, 6, 7, 4, 8, 1, 12, 11, 3, 12, 1, 8, 4, 2, 9, 5, 13, 10, 5, 3, 11, 15};
+	// std::vector<int> h {15, 11, 12, 8, 4, 3, 7, 12, 10, 6, 2, 1, 5, 9, 6, 2, 1, 5, 9, 6, 13, 14, 11, 10, 8, 15, 10, 11, 2, 1, 5, 9, 6, 5, 12, 8, 1, 12, 8, 4, 3, 7, 4, 8, 5, 6, 9, 4, 8, 5, 12, 2, 11, 1, 15, 10, 1, 11, 14, 13, 2, 15, 11, 1, 10, 11, 5, 8, 7, 3, 11, 10}; // hard
+	// std::vector<int> h {12, 11, 10, 9, 5, 6, 7, 3, 4, 8, 3, 4, 8, 3, 4, 7, 2, 1, 6, 5, 13, 14, 15, 10, 11, 12, 10, 15, 9, 11, 7, 8, 3, 4, 8, 3, 4, 8, 3, 7, 15, 10, 12, 15, 11, 2, 1, 4, 8, 3, 15, 12, 10, 11, 7, 15, 12, 10, 11, 7, 10, 11, 7, 9, 2, 10, 9, 2, 10, 9, 11, 7};
+	//15 11 10 14 13 9 14 13 11 10 12 8 7 12 8 7 4 3 2 1 5 14 13 8 10 11 8 6 1 2 3 4 7 15 11 8 6 13 14 5 2 1 5 14 13 5 12 10 15 11 8 15 10 12 1 2 14 13 5 6 15 8 11 7 12 1 13 14 2 13 6 10 7 11 8 7 10 15 9 5 14 6 1 3 4 12 3 4 12 3 4 10 7 9 15 7 11 4 10 12 13 2 6 1 12 11 7 12 1 14 12 7 9 8 4 10 3 13 11 1 2 6 14 2 1 11 6 1 11 9 10 3 13 6 9 11 2 12 7 2 1 9 6 13 11 6 9 1 6 10 2 6 10 2 6 7 5 15 8 4 3 11 13 9 2 10 1 2 9 13 10 9 13 10 11 3 4 6 7 5 12 14 2 1 5 12 15 8 12 15 8 12 6 7 3 11 10 13 9 3 15 8 14 2 1 5 2 1 5 2 3 10 11 4 7 6 8 14 1 3 14 8 12 1 3 5 2 9 13 11 10 13 9 2 5 3 1 12 8 1 12 8 6 7 4 10 13 9 2 14 1 6 8 12 3 1 14 2 11 13 10 4 7 8 6 3 12 6 3 14 2 5 1 12 6 3 14 2 5 11 9 15 4 7 8 14 3 6 2 5 11 9 13 10 15 13 9 1 12 11 13 15 7 8 step 56
+	//12 8 7 3 4 7 3 11 15 12 8 3 11 6 2 1 5 2 6 15 12 8 3 11 15 4 7 15 11 12 8 3 12 11 15 7 4 8 3 12 11 15 7 4 8 6 2 5 1 2 10 14 13 9 5 1 2 10 1 5 9 13 14 1 6 7 15 11 12 14 1 6 7 8 4 15 8 3 14 1 6 9 5 2 10 7 3 14 9 6 1 12 11 8 15 4 14 3 7 14 3 7 2 10 14 2 6 9 8 11 12 1 9 8 11 15 4 3 2 14 10 6 8 11 15 4 3 2 14 8 11 9 1 15 7 14 2 3 14 2 8 11 9 1 13 5 6 10 11 9 10 6 1 7 15 13 5 1 7 15 2 14 4 2 13 5 1 7 15 13 5 1 13 15 6 11 9 8 3 4 14 5 2 12 1 13 15 2 5 10 2 6 7 15 6 7 15 6 7 2 8 9 11 15 6 7 13 1 12 5 10 8 2 6 7 13 6 2 15 11 9 3 4 14 5 12 1 10 8 5 12 8 10 6 13 7 11 15 3 9 15 3 9 4 5 10 8 1 6 8 2 11 3 9 10 2 8 6 1 12 2 10 4 5 10 8 6 1 12 6 8 2 6 8 2 6 8 2 1 13 11 4 9 15 5 10 6 9 15 5 10 15 5 3 7 11 13 12 2 8 8 2 step 58
 	// init_history = h;
 	makeinit(depth, true);
 	// init = get_state_init(init_history.size() - 1);
 	// display(init);
+	// opti_history = Astar_slow(init);
 	opti_history = Astar(init);
 	// optini_history = IDAstar(init);
 	optini_history = make_optini();
 	curr = init;
+}
+
+Gamefield::Gamefield(int &nx, int &ny, std::vector<int> &placement_) : Gamefield(nx, ny) {
+	int MAX_VALUE = Nx*Ny;
+	for (int i = 0; i < MAX_VALUE; ++i) {
+		if (placement_[i] > 0)
+			init[i] = dice(i % Nx, i/Ny, (placement_[i] - 1) % Nx, (placement_[i] - 1)/Ny, placement_[i]);
+		else
+			init[i] = dice(i % Nx, i/Ny, Nx - 1, Ny - 1, placement_[i]);
+	}
+	curr = init;
+	opti_history = Astar(init);
 }
 
 placement& Gamefield::get_corr_placement() {
@@ -520,7 +543,7 @@ std::vector<std::shared_ptr<vertex>> Gamefield::successors(std::shared_ptr<verte
 	return new_vertices;
 }
 
-std::vector<int> Gamefield::Astar(placement &ref_placement) {
+std::vector<int> Gamefield::Astar_slow(placement &ref_placement) {
 	std::vector<int> history;
 	
 	// std::vector<vertex*> open;
@@ -633,6 +656,57 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 		// if (open.size() > 10000) {
 		// 	std::cout << open.size() << " " << close.size() << std::endl;
 		// }
+	}
+	
+	return history;
+}
+
+std::vector<int> Gamefield::Astar(placement &ref_placement) {
+	/* https://www.redblobgames.com/pathfinding/a-star/implementation.html */
+	std::priority_queue<std::shared_ptr<vertex>,
+    std::deque<std::shared_ptr<vertex>>,
+    VertexSorter> frontier;
+	
+	std::unordered_map<std::shared_ptr<vertex>,
+	std::shared_ptr<vertex>,
+	VertexHash,
+	VertexHashEqual> came_from;
+
+	std::vector<std::shared_ptr<vertex>> test_vertices;
+
+	std::vector<int> history;
+	
+	std::shared_ptr<vertex> start = std::make_shared<vertex>(ref_placement, Nx, Ny);
+
+	frontier.push(start);
+	came_from[start] = start;
+
+	int c(0);
+
+	while (!frontier.empty()) {
+		std::shared_ptr<vertex> current = frontier.top();
+		frontier.pop();
+
+		if (current->H == 0) {
+			std::cout << "num vertices: " << c << std::endl;
+			history.push_back(current->value);
+			std::shared_ptr<vertex> p = current->getParent();
+			while (p->getParent() != nullptr) {
+				history.push_back(p->value);
+				p = p->getParent();
+			}
+			return history;
+		}
+		
+		test_vertices = successors(current);
+
+		for (auto next : test_vertices) {
+			if (came_from.find(next) == came_from.end() || next->G < came_from[next]->G) {
+				frontier.push(next);
+				came_from[next] = current;
+			}
+		}
+		c++;
 	}
 	
 	return history;

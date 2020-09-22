@@ -2,6 +2,7 @@
 #include <iostream>
 #include <queue>
 #include <unordered_map>
+#include <vector>
 #include <memory>
 
 void display(placement &ref_placement, int nx, int ny) {
@@ -14,6 +15,7 @@ void display(placement &ref_placement, int nx, int ny) {
 }
 
 void test_VertexHash(int nx, int ny) {
+
 	Gamefield gf(nx, ny);
 
 	// std::cout << "initial: " << std::endl;
@@ -51,8 +53,10 @@ void test_VertexHash(int nx, int ny) {
 }
 
 void test_search_algorithm(int nx, int ny, int depth) {
+	// std::vector<int> placement_ {11, 12, 9, 10, 15, -1, 13, 14, 3, 4, 1, 2, 7, 8, 5, 6};
 	Gamefield gf(nx, ny, depth);
-
+	// Gamefield gf(nx, ny, placement_);
+	
 	// std::cout << "correct: " << std::endl;		
 	// gf.display(gf.get_corr_placement());
 	// std::cout << std::endl;
@@ -118,8 +122,8 @@ void test_pq(int nx, int ny) {
 	std::cout << "v3_F: " << v3->F << std::endl;
 
 	std::priority_queue<std::shared_ptr<vertex>,
-						std::deque<std::shared_ptr<vertex>>,
-						VertexSorter> q;
+			    std::deque<std::shared_ptr<vertex>>,
+			    VertexSorter> q;
 		
 	q.push(v3);
 	q.push(v2);
@@ -154,18 +158,26 @@ void test_umap(int nx, int ny) {
 	std::cout << "v2_F: " << v2->F << std::endl;
 	std::cout << "v3_F: " << v3->F << std::endl;
 
+	//std::unordered_map<std::shared_ptr<vertex>,
+	//		   size_t,
+	//		   VertexHash> umap;
 	std::unordered_map<std::shared_ptr<vertex>,
-					   size_t,
-					   VertexHash> umap;
-	
-	VertexHash h;
+			   std::shared_ptr<vertex>,
+			   VertexHash,
+			   VertexHashEqual> umap;
 
-	umap.emplace(v1, h(v1));
-	umap.emplace(v2, h(v2));
-	umap.emplace(v3, h(v3));
+	//VertexHash h;
+
+	//umap.emplace(v1, h(v1));
+	//umap.emplace(v2, h(v2));
+	//umap.emplace(v3, h(v3));
+
+	umap[v1] = v1;
+	umap[v2] = v2;
+	umap[v3] = v3;
 
 	for (auto v: umap) {
-		std::cout << v.first->F << " " << v.second << std::endl;
+		std::cout << v.first << " " << v.second->F << std::endl;
 	}
 
 	if (umap.find(v4) != umap.end())
@@ -175,13 +187,23 @@ void test_umap(int nx, int ny) {
 	
 }
 
-int main(int argc, char *argv[]) {
-	int nx(4), ny(4), depth(30);
+void test_constructor(int nx, int ny) {
+	std::vector<int> placement_ {3, 15, 12, 11, 5, 6, 7, 13, 4, 10, 14, 9, 2, 8, 1, -1}; // 4x4 - 60 steps
+	// std::vector<int> placement_ {2, -1, 3, 5, 1, 4}; // 2x3
+	Gamefield gf(nx, ny, placement_);
+	std::cout << "initial: " << std::endl;
+	gf.display(gf.get_init_placement());
+	std::cout << std::endl;
+}
 
-	// test_search_algorithm(nx, ny, depth);
+int main(int argc, char *argv[]) {
+	int nx(4), ny(4), depth(40);
+	
+	// test_constructor(nx, ny);
+	test_search_algorithm(nx, ny, depth);
 	// test_VertexHash(nx, ny);		
 	// test_pq(nx, ny);
-	test_umap(nx, ny);
+	//test_umap(nx, ny);
 
 	return 0;
 }
