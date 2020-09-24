@@ -54,6 +54,10 @@ void test_VertexHash(int nx, int ny) {
 
 void test_search_algorithm(int nx, int ny, int depth) {
 	// std::vector<int> placement_ {11, 12, 9, 10, 15, -1, 13, 14, 3, 4, 1, 2, 7, 8, 5, 6};
+	// std::vector<int> placement_ {-1, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+	// std::vector<int> placement_ {1, 2, 15, 3, 7, 4, 8, 11, 5, 10, 6, 12, 9, 13, 14, -1};
+	// std::vector<int> placement_ {5, 1, 3, 4, 2, 13, 6, 7, 9, 15, 8, 12, 14, 11, 10, -1};
+	// std::vector<int> placement_ {1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 15, -1, 14, 11, 10, 12};
 	Gamefield gf(nx, ny, depth);
 	// Gamefield gf(nx, ny, placement_);
 	

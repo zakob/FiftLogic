@@ -82,6 +82,7 @@ class Gamefield {
 		dice& get_free_dice(placement &ref_placement);
 		void display_history(std::vector<int> &ref_history);
 	public:
+		Gamefield();
 		Gamefield(int &nx, int &ny);
 		Gamefield(int &nx, int &ny, int &depth);
 		Gamefield(int &nx, int &ny, std::vector<int> &placement_);
@@ -133,4 +134,8 @@ class Gamefield {
 		void display_opti_history();
 		void display_optini_history();
 		//void display_history(); // NEED DELETE
+
+		bool IsCombinationAssembled();
+		void ClearHistory();
+		void UE4Astar();
 };

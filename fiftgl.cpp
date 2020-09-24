@@ -175,21 +175,21 @@ size_t VertexHash::operator()(const vertex &v) const {
 	int index(0);
 	std::vector<int> fak;
 
-	for(size_t i = 0; i < v.state.size(); ++i) {
-		if (v.state[i].value != -1)
-			fak.push_back(v.state[i].value);
+	for(auto dice : v.state) {
+		if (dice.value != -1)
+			fak.push_back(dice.value);
 		else
 			fak.push_back(0);
 	}
 
-	for(size_t value = 0; value < v.state.size(); ++value) {
+	for(int value = 0; value < static_cast<int>(v.state.size()); ++value) {
 
-		for(index = 0; index < fak.size(); ++index) {
+		for(index = 0; index < static_cast<int>(fak.size()); ++index) {
 			if (fak[index] == value)
 				break;
 		}
 
-		h = h*(v.state.size() - value) + index;
+		h = h*(static_cast<int>(v.state.size()) - value) + index;
 		fak.erase(fak.begin() + index);
 	}
 
@@ -202,21 +202,21 @@ size_t VertexHash::operator()(const std::shared_ptr<vertex> &pv) const {
 	int index(0);
 	std::vector<int> fak;
 
-	for(size_t i = 0; i < pv->state.size(); ++i) {
-		if (pv->state[i].value != -1)
-			fak.push_back(pv->state[i].value);
+	for(auto dice : pv->state) {
+		if (dice.value != -1)
+			fak.push_back(dice.value);
 		else
 			fak.push_back(0);
 	}
 
-	for(size_t value = 0; value < pv->state.size(); ++value) {
+	for(int value = 0; value < static_cast<int>(pv->state.size()); ++value) {
 
-		for(index = 0; index < fak.size(); ++index) {
+		for(index = 0; index < static_cast<int>(fak.size()); ++index) {
 			if (fak[index] == value)
 				break;
 		}
 
-		h = h*(pv->state.size() - value) + index;
+		h = h*(static_cast<int>(pv->state.size()) - value) + index;
 		fak.erase(fak.begin() + index);
 	}
 
@@ -228,7 +228,11 @@ bool VertexHashEqual::operator() (const std::shared_ptr<vertex> &lhs, const std:
 }
 
 bool VertexSorter::operator() (std::shared_ptr<vertex> &lhs, std::shared_ptr<vertex> &rhs) {
-		return lhs->F > rhs->F;
+	// return lhs->F > rhs->F;
+	return lhs->F >= rhs->F;
+}
+
+Gamefield::Gamefield() {
 }
 
 Gamefield::Gamefield(int &nx, int &ny) {
@@ -281,9 +285,9 @@ Gamefield::Gamefield(int &nx, int &ny, std::vector<int> &placement_) : Gamefield
 	int MAX_VALUE = Nx*Ny;
 	for (int i = 0; i < MAX_VALUE; ++i) {
 		if (placement_[i] > 0)
-			init[i] = dice(i % Nx, i/Ny, (placement_[i] - 1) % Nx, (placement_[i] - 1)/Ny, placement_[i]);
+			init[i] = dice(i % Nx, i/Nx, (placement_[i] - 1) % Nx, (placement_[i] - 1)/Nx, placement_[i]);
 		else
-			init[i] = dice(i % Nx, i/Ny, Nx - 1, Ny - 1, placement_[i]);
+			init[i] = dice(i % Nx, i/Nx, Nx - 1, Ny - 1, placement_[i]);
 	}
 	curr = init;
 	opti_history = Astar(init);
@@ -450,7 +454,7 @@ bool Gamefield::iscorrect(placement &ref_placement) {
 				}
 			}
 			else {
-				if (j*Nx + i != ref_placement.size() - 1) {
+				if (j*Nx + i != static_cast<int>(ref_placement.size()) - 1) {
 					check = false;
 					break;
 				}
@@ -596,7 +600,7 @@ std::vector<int> Gamefield::Astar_slow(placement &ref_placement) {
 						count += 1;
 					}
 				}
-				if (count == test_vertices.size())
+				if (count == static_cast<int>(test_vertices.size()))
 					break;
 			}
 		}
@@ -609,7 +613,7 @@ std::vector<int> Gamefield::Astar_slow(placement &ref_placement) {
 						count += 1;
 					}
 				}
-				if (count == test_vertices.size())
+				if (count == static_cast<int>(test_vertices.size()))
 					break;
 			}
 		}
@@ -663,9 +667,10 @@ std::vector<int> Gamefield::Astar_slow(placement &ref_placement) {
 
 std::vector<int> Gamefield::Astar(placement &ref_placement) {
 	/* https://www.redblobgames.com/pathfinding/a-star/implementation.html */
+
 	std::priority_queue<std::shared_ptr<vertex>,
-    std::deque<std::shared_ptr<vertex>>,
-    VertexSorter> frontier;
+	std::deque<std::shared_ptr<vertex>>,
+	VertexSorter> frontier;
 	
 	std::unordered_map<std::shared_ptr<vertex>,
 	std::shared_ptr<vertex>,
@@ -689,12 +694,15 @@ std::vector<int> Gamefield::Astar(placement &ref_placement) {
 
 		if (current->H == 0) {
 			std::cout << "num vertices: " << c << std::endl;
+			std::cout << "H: " << current->H;
 			history.push_back(current->value);
 			std::shared_ptr<vertex> p = current->getParent();
 			while (p->getParent() != nullptr) {
+				std::cout << " " << p->H;
 				history.push_back(p->value);
 				p = p->getParent();
 			}
+			std::cout << std::endl;
 			return history;
 		}
 		
@@ -795,4 +803,28 @@ void Gamefield::display_opti_history() {
 
 void Gamefield::display_optini_history() {
 	display_history(optini_history);
+}
+
+bool Gamefield::IsCombinationAssembled() {
+	int s = 0;
+	for (size_t i = 0; i < corr.size(); i++) {
+		if (corr[i].value == curr[i].value) {
+			s = s + 1;
+		}
+	}
+	if (s == Nx * Ny) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+void Gamefield::ClearHistory() {
+	curr = init;
+	curr_history.clear();
+	init_history.clear();
+	last_history.clear();
+}
+void Gamefield::UE4Astar() {
+	opti_history = Astar(init);
 }
